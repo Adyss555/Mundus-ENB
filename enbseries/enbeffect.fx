@@ -34,11 +34,6 @@ Texture2D RenderTargetR16F;     //R16F 16 bit hdr format with red channel only
 Texture2D RenderTargetR32F;     //R32F 32 bit hdr format with red channel only
 Texture2D RenderTargetRGB32F;   //32 bit hdr format without alpha
 
-// Curves
-Texture2D curveDay              <string ResourceName="Include/Textures/curveDay.png"; >;
-Texture2D curveNight            <string ResourceName="Include/Textures/curveNight.png"; >;
-Texture2D curveInterior         <string ResourceName="Include/Textures/curveInterior.png"; >;
-
 //===========================================================//
 // Internals                                                 //
 //===========================================================//
@@ -58,11 +53,6 @@ UI_FLOAT_DNI(gamma,                 "| Gamma",                  0.1, 3.0, 1.0)
 UI_FLOAT_DNI(contrast,              "| Contrast",               0.0, 1.0, 0.5)
 UI_FLOAT_FINE_DNI(colorTempK,       "| Color Temperature",      1000.0, 30000.0, 7000.0, 50.0)
 UI_FLOAT_DNI(saturation,            "| Saturation",             0.1, 5.0, 1.0)
-
-UI_FLOAT_FINE(hueMid,               "|  Hue Selection ",        0.0, 1.0, 0.0, 0.001)
-UI_FLOAT(hueRange,          	    "|  Hue Range ",            0.0, 1.0, 0.1)
-UI_FLOAT(satLimit,        			"|  Saturation Limit",      0.0, 1.0, 1.0)
-UI_FLOAT(fxcolorMix,        	    "|  Mix Isolated Color",    0.0, 1.0, 0.1)
 UI_FLOAT_DNI(maxWhite,              "| Max White",              0.0, 12.0, 1.0)
 UI_FLOAT_DNI(blackPoint,            "| Black Point",           -1.0, 1.0, 0.0)
 UI_FLOAT_DNI(whitePoint,            "| White Point",            0.0, 100.0, 1.0)
@@ -90,11 +80,11 @@ UI_BOOL(showLens,                   "| Show Lens",              false)
 UI_BOOL(enableCurve,                "| Enable Curve",           false)
 #endif
 
+
 //===========================================================//
 // Functions                                                 //
 //===========================================================//
-#include "Include/Shaders/curveLookup.fxh"
-#include "Include/Shaders/colorIsolation.fxh"
+
 
 // Arri Log C4
 float3 LogC4(float3 HDRLinear)
@@ -188,19 +178,12 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 
             color  *= exp(exposure + isBri);        // Exposure    
             color   = LogC4(color);                 // Tonemap
-            color   = pow(color, gamma + isCon);    // Gamma
+            color   = pow(color, gamma + isCon);    // Gamma^1
             color   = rgb2ictcp(color);
-            color.yz *= saturation * isSat;
+            color.yz *= (saturation + isSat) * 0.5;
             color   = ictcp2rgb(color);
             color   = whiteBalance(color, GetLuma(color, Rec709));
             color   = S_Curve(color, isCon);
-
-            // Apply curves
-        #ifdef DEBUG_MODE
-            if(enableCurve)
-        #endif
-            color   = max(lerp(lerp(curveLookup(color, curveNight), curveLookup(color, curveDay), ENightDayFactor), curveLookup(color, curveInterior), EInteriorFactor), 0.0);
-
             color   = lerp(color, Params01[5].xyz, Params01[5].w); // Fade effects
 
     return saturate(color + triDither(color, coord, Timer.x, 8));

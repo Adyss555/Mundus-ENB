@@ -12,9 +12,9 @@
 // Load global config
 #include "Include/mundusConfig.fxh"
 
-//==================================================//
-// Textures                                         //
-//==================================================//
+//===========================================================//
+// Textures                                                  //
+//===========================================================//
 Texture2D   TextureOriginal;     // color R16B16G16A16 64 bit hdr format
 Texture2D   TextureColor;        // color which is output of previous technique (except when drawed to temporary render target), R16B16G16A16 64 bit hdr format
 Texture2D   TextureDepth;        // scene depth R32F 32 bit hdr format
@@ -29,51 +29,141 @@ Texture2D   RenderTargetR16F;    // R16F 16 bit hdr format with red channel only
 Texture2D   RenderTargetR32F;    // R32F 32 bit hdr format with red channel only
 Texture2D   RenderTargetRGB32F;  // 32 bit hdr format without alpha
 
-//==================================================//
-// Internals                                        //
-//==================================================//
+//===========================================================//
+// Internals                                                 //
+//===========================================================//
 #include "Include/Shared/Globals.fxh"
 #include "Include/Shared/ReforgedUI.fxh"
 #include "Include/Shared/Conversions.fxh"
 #include "Include/Shared/BlendingModes.fxh"
+#include "Include/Shared/WeatherSeperation.fxh"
 
-//==================================================//
-// UI                                               //
-//==================================================//
+//===========================================================//
+// UI                                                        //
+//===========================================================//
 
 UI_MESSAGE(1,                   "|----- Sun -----")
-UI_BOOL(enableSunGlow,          "| Enable Glow",                false)
-UI_FLOAT(glowStrength,          "|  Glow Strength",             0.1, 3.0, 1.0)
-UI_FLOAT(glowThreshold,         "|  Glow Threshold",            0.0, 1.0, 0.1)
-UI_FLOAT(glowCurve,             "|  Glow Curve",                0.1, 3.0, 1.0)
-UI_FLOAT3(glowTint,             "|  Glow Tint",                 0.5, 0.5, 0.5)
-UI_FLOAT(sunDarkening,          "|  Darken around Sun",         0.0, 1.0, 0.0)
+UI_BOOL(enableSunGlow,          "| Enable Glow",                    false)
+UI_FLOAT(glowStrength,          "|  Glow Strength",                 0.1, 3.0, 1.0)
+UI_FLOAT(glowThreshold,         "|  Glow Threshold",                0.0, 1.0, 0.1)
+UI_FLOAT(glowCurve,             "|  Glow Curve",                    0.1, 3.0, 1.0)
+UI_FLOAT3(glowTint,             "|  Glow Tint",                     0.5, 0.5, 0.5)
+UI_FLOAT(sunDarkening,          "|  Darken around Sun",             0.0, 1.0, 0.0)
 UI_WHITESPACE(1)
 UI_MESSAGE(2,                   "|----- Sharpening -----")
-UI_BOOL(enableSharpening,       "| Enable Sharpening",          false)
-UI_FLOAT(SharpenigOffset,       "|  Sharpening Offset",         0.2, 2.0, 1.0)
-UI_FLOAT(SharpeningStrength,    "|  Sharpening Strength",      	0.2, 3.0, 1.0)
-UI_FLOAT(SharpDistance,         "|  Sharpening Fadeout",        0.1, 15.0, 3.0)
-UI_BOOL(ignoreSkin,             "|  Ignore Skin",               false)
+UI_BOOL(enableSharpening,       "| Enable Sharpening",              false)
+UI_FLOAT(SharpenigOffset,       "|  Sharpening Offset",             0.2, 2.0, 1.0)
+UI_FLOAT(SharpeningStrength,    "|  Sharpening Strength",      	    0.2, 3.0, 1.0)
+UI_FLOAT(SharpDistance,         "|  Sharpening Fadeout",            0.1, 15.0, 3.0)
+UI_BOOL(ignoreSkin,             "|  Ignore Skin",                   false)
 UI_WHITESPACE(2)
-UI_MESSAGE(3,                   "|----- Fog -----")
-UI_BOOL(enableFog,              "| Enable Fog",                 false)
-#ifdef DEBUG_MODE
-UI_BOOL(showFogMask,            "| Show Fog Mask",             false)
-#endif
-UI_FLOAT(nearFogLayer1,         "|  near Fog Distance",         0.0, 10.0, 0.7)
-UI_FLOAT(farFogLayer1,          "|  near Fog Closeup",          0.0, 10.0, 0.0)
-UI_FLOAT3(colorFogLayer1,       "|  near Fog Color",            0.3, 0.3, 0.3)
+UI_MESSAGE(3,                   "|----- Weather Fog -----")
+UI_BOOL(enableFog,              "| Enable Fog",                     false)
+UI_BOOL(showFogMask,            "| Show Fog Mask",                  false)
+UI_MESSAGE(4,                   "| Tweak each weather below")
 UI_WHITESPACE(3)
-UI_FLOAT(nearFogLayer2,         "|  far Fog Distance",          0.0, 10.0, 1.5)
-UI_FLOAT(farFogLayer2,          "|  far Fog Closeup",           0.0, 10.0, 0.5)
-UI_FLOAT3(colorFogLayer2,       "|  far Fog Color",             0.3, 0.3, 0.3)
+UI_MESSAGE(5,                   "|--- Clear Weather Fog ---")
+UI_FLOAT(w1fogDensity,          "| Clear Fog Density",              0.0, 100.0, 0.0)
 UI_WHITESPACE(4)
-UI_FLOAT(fogDensity,            "|  Fog Density",               0.0, 50.0, 0.0)
+UI_FLOAT(w1l1nearFog,           "| Clear near Fog Distance",        0.0, 10.0, 0.2)
+UI_FLOAT(w1l1farFog,            "| Clear near Fog Closeup",         0.0, 10.0, 0.0)
+UI_FLOAT3(w1l1fogCol,           "| Clear near Fog Color",           0.3, 0.3, 0.3)
+UI_WHITESPACE(5)
+UI_FLOAT(w1l2nearFog,           "| Clear far Fog Distance",         0.0, 10.0, 1.0)
+UI_FLOAT(w1l2farFog,            "| Clear far Fog Closeup",          0.0, 10.0, 0.3)
+UI_FLOAT3(w1l2fogCol,           "| Clear far Fog Color",            0.3, 0.3, 0.3)
+UI_WHITESPACE(6)
+UI_MESSAGE(6,                   "|--- Cloudy Weather Fog ---")
+UI_FLOAT(w2fogDensity,          "| Cloudy Fog Density",             0.0, 100.0, 0.0)
+UI_WHITESPACE(7)
+UI_FLOAT(w2l1nearFog,           "| Cloudy near Fog Distance",       0.0, 10.0, 0.2)
+UI_FLOAT(w2l1farFog,            "| Cloudy near Fog Closeup",        0.0, 10.0, 0.0)
+UI_FLOAT3(w2l1fogCol,           "| Cloudy near Fog Color",          0.3, 0.3, 0.3)
+UI_WHITESPACE(8)
+UI_FLOAT(w2l2nearFog,           "| Cloudy far Fog Distance",        0.0, 10.0, 1.0)
+UI_FLOAT(w2l2farFog,            "| Cloudy far Fog Closeup",         0.0, 10.0, 0.3)
+UI_FLOAT3(w2l2fogCol,           "| Cloudy far Fog Color",           0.3, 0.3, 0.3)
+UI_WHITESPACE(9)
+UI_MESSAGE(7,                   "|--- Overcast Weather Fog ---")
+UI_FLOAT(w3fogDensity,          "| Overcast Fog Density",           0.0, 100.0, 0.0)
+UI_WHITESPACE(10)
+UI_FLOAT(w3l1nearFog,           "| Overcast near Fog Distance",     0.0, 10.0, 0.2)
+UI_FLOAT(w3l1farFog,            "| Overcast near Fog Closeup",      0.0, 10.0, 0.0)
+UI_FLOAT3(w3l1fogCol,           "| Overcast near Fog Color",        0.3, 0.3, 0.3)
+UI_WHITESPACE(11)
+UI_FLOAT(w3l2nearFog,           "| Overcast far Fog Distance",      0.0, 10.0, 1.0)
+UI_FLOAT(w3l2farFog,            "| Overcast far Fog Closeup",       0.0, 10.0, 0.3)
+UI_FLOAT3(w3l2fogCol,           "| Overcast far Fog Color",         0.3, 0.3, 0.3)
+UI_WHITESPACE(12)
+UI_MESSAGE(8,                   "|--- Rain Weather Fog ---")
+UI_FLOAT(w4fogDensity,          "| Rain Fog Density",               0.0, 100.0, 0.0)
+UI_WHITESPACE(13)
+UI_FLOAT(w4l1nearFog,           "| Rain near Fog Distance",         0.0, 10.0, 0.2)
+UI_FLOAT(w4l1farFog,            "| Rain near Fog Closeup",          0.0, 10.0, 0.0)
+UI_FLOAT3(w4l1fogCol,           "| Rain near Fog Color",            0.3, 0.3, 0.3)
+UI_WHITESPACE(14)
+UI_FLOAT(w4l2nearFog,           "| Rain far Fog Distance",          0.0, 10.0, 1.0)
+UI_FLOAT(w4l2farFog,            "| Rain far Fog Closeup",           0.0, 10.0, 0.3)
+UI_FLOAT3(w4l2fogCol,           "| Rain far Fog Color",             0.3, 0.3, 0.3)
+UI_WHITESPACE(15)
+UI_MESSAGE(9,                   "|--- Snow Weather Fog ---")
+UI_FLOAT(w5fogDensity,          "| Snow Fog Density",               0.0, 100.0, 0.0)
+UI_WHITESPACE(16)
+UI_FLOAT(w5l1nearFog,           "| Snow near Fog Distance",         0.0, 10.0, 0.2)
+UI_FLOAT(w5l1farFog,            "| Snow near Fog Closeup",          0.0, 10.0, 0.0)
+UI_FLOAT3(w5l1fogCol,           "| Snow near Fog Color",            0.3, 0.3, 0.3)
+UI_WHITESPACE(17)
+UI_FLOAT(w5l2nearFog,           "| Snow far Fog Distance",          0.0, 10.0, 1.0)
+UI_FLOAT(w5l2farFog,            "| Snow far Fog Closeup",           0.0, 10.0, 0.3)
+UI_FLOAT3(w5l2fogCol,           "| Snow far Fog Color",             0.3, 0.3, 0.3)
+UI_WHITESPACE(18)
+UI_MESSAGE(10,                  "|--- Foggy Weather Fog ---")
+UI_FLOAT(w6fogDensity,          "| Foggy Fog Density",              0.0, 100.0, 0.0)
+UI_WHITESPACE(19)
+UI_FLOAT(w6l1nearFog,           "| Foggy near Fog Distance",        0.0, 10.0, 0.2)
+UI_FLOAT(w6l1farFog,            "| Foggy near Fog Closeup",         0.0, 10.0, 0.0)
+UI_FLOAT3(w6l1fogCol,           "| Foggy near Fog Color",           0.3, 0.3, 0.3)
+UI_WHITESPACE(20)
+UI_FLOAT(w6l2nearFog,           "| Foggy far Fog Distance",         0.0, 10.0, 1.0)
+UI_FLOAT(w6l2farFog,            "| Foggy far Fog Closeup",          0.0, 10.0, 0.3)
+UI_FLOAT3(w6l2fogCol,           "| Foggy far Fog Color",            0.3, 0.3, 0.3)
+UI_WHITESPACE(21)
+UI_MESSAGE(11,                  "|--- Ash Weather Fog ---")
+UI_FLOAT(w7fogDensity,          "| Ash Fog Density",                0.0, 100.0, 0.0)
+UI_WHITESPACE(22)
+UI_FLOAT(w7l1nearFog,           "| Ash near Fog Distance",          0.0, 10.0, 0.2)
+UI_FLOAT(w7l1farFog,            "| Ash near Fog Closeup",           0.0, 10.0, 0.0)
+UI_FLOAT3(w7l1fogCol,           "| Ash near Fog Color",             0.3, 0.3, 0.3)
+UI_WHITESPACE(23)
+UI_FLOAT(w7l2nearFog,           "| Ash far Fog Distance",           0.0, 10.0, 1.0)
+UI_FLOAT(w7l2farFog,            "| Ash far Fog Closeup",            0.0, 10.0, 0.3)
+UI_FLOAT3(w7l2fogCol,           "| Ash far Fog Color",              0.3, 0.3, 0.3)
+UI_WHITESPACE(24)
+UI_MESSAGE(12,                  "|--- Blackreach Weather Fog ---")
+UI_FLOAT(w8fogDensity,          "| Blackreach Fog Density",         0.0, 100.0, 0.0)
+UI_WHITESPACE(25)
+UI_FLOAT(w8l1nearFog,           "| Blackreach near Fog Distance",   0.0, 10.0, 0.2)
+UI_FLOAT(w8l1farFog,            "| Blackreach near Fog Closeup",    0.0, 10.0, 0.0)
+UI_FLOAT3(w8l1fogCol,           "| Blackreach near Fog Color",      0.3, 0.3, 0.3)
+UI_WHITESPACE(26)
+UI_FLOAT(w8l2nearFog,           "| Blackreach far Fog Distance",    0.0, 10.0, 1.0)
+UI_FLOAT(w8l2farFog,            "| Blackreach far Fog Closeup",     0.0, 10.0, 0.3)
+UI_FLOAT3(w8l2fogCol,           "| Blackreach far Fog Color",       0.3, 0.3, 0.3)
+UI_WHITESPACE(27)
+UI_MESSAGE(13,                  "|--- Interior Fog ---")
+UI_FLOAT(w9fogDensity,          "| Interior Fog Density",           0.0, 100.0, 0.0)
+UI_WHITESPACE(28)
+UI_FLOAT(w9l1nearFog,           "| Interior near Fog Distance",     0.0, 10.0, 0.2)
+UI_FLOAT(w9l1farFog,            "| Interior near Fog Closeup",      0.0, 10.0, 0.0)
+UI_FLOAT3(w9l1fogCol,           "| Interior near Fog Color",        0.3, 0.3, 0.3)
+UI_WHITESPACE(29)
+UI_FLOAT(w9l2nearFog,           "| Interior far Fog Distance",      0.0, 10.0, 1.0)
+UI_FLOAT(w9l2farFog,            "| Interior far Fog Closeup",       0.0, 10.0, 0.3)
+UI_FLOAT3(w9l2fogCol,           "| Interior far Fog Color",         0.3, 0.3, 0.3)
 
-//==================================================//
-// Functions                                		//
-//==================================================//
+//===========================================================//
+// Functions                                                 //
+//===========================================================//
 #include "Include/Shaders/sharpening.fxh"
 
 float2 getSun()
@@ -96,62 +186,231 @@ float getSunvisibility()
     return saturate(lerp(1, 0, distance(getSun(), float2(0.5, 0.5))));
 }
 
-// Weather Setup
-// Clear
-#define CLEAR_WEATHERS_START    1
-#define CLEAR_WEATHERS_END      8
-
-// Cloudy
-#define CLOUDY_WEATHERS_START   9
-#define CLOUDY_WEATHERS_END     10
-
-// Overcast
-#define OVERCAST_WEATHERS_START 11
-#define OVERCAST_WEATHERS_END   12
-
-// Rain
-#define RAIN_WEATHERS_START     13
-#define RAIN_WEATHERS_END       15
-
-// Snow
-#define SNOW_WEATHERS_START     16
-#define SNOW_WEATHERS_END       17
-
-// Fog
-#define FOG_WEATHERS_START      18
-#define FOG_WEATHERS_END        20
-
-// Ash
-#define ASH_WEATHERS_START      21
-#define ASH_WEATHERS_END        21
-
-static const float IncomingTransitionStep = 0.7;
-static const float OutgoingTransitionStep = 0.2;
-
-float WeatherToEffectStrength_SC(float Outgoing, float Incoming, float WeatherTran, float Step)
+struct fogSettings
 {
-	float2 Weather    = { Outgoing, Incoming };
-	float2 Transition = { WeatherTran, 1.0 - WeatherTran };
-	
-	Transition = saturate(Transition - Step) * rcp(1.0 - Step);
-	Transition = lerp(Weather.xy, Weather.yx, Transition);
-	
-	return (Incoming >= Outgoing) ? Transition.x : Transition.y;
+    float  nearFogLayer1, farFogLayer1, nearFogLayer2, farFogLayer2, fogDensity;
+    float3 colorFogLayer1, colorFogLayer2;
+};
+
+fogSettings defaultFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = 0.2;
+    fog.farFogLayer1    = 0.0;
+    fog.colorFogLayer1  = float3(0.1, 0.1, 0.1);
+
+    // far Fog
+    fog.nearFogLayer2   = 1.0;
+    fog.farFogLayer2    = 0.3;
+    fog.colorFogLayer2  = float3(0.1, 0.1, 0.1);
+
+    // Overall density
+    fog.fogDensity      = 1.0;
+
+    return fog;
 }
 
-float fogWeather()
+fogSettings clearFog()
 {
-    float  IncomingFog, OutgoingFog;
-    float2(IncomingFog, OutgoingFog) = (Weather.xy >= FOG_WEATHERS_START && Weather.xy <= FOG_WEATHERS_END);
+    fogSettings fog;
 
-    float TransitionStep = (IncomingFog > OutgoingFog) ? IncomingTransitionStep : OutgoingTransitionStep;
-    return WeatherToEffectStrength_SC(OutgoingFog, IncomingFog, Weather.z, TransitionStep);
+    // near Fog
+    fog.nearFogLayer1   = w1l1nearFog;
+    fog.farFogLayer1    = w1l1farFog;
+    fog.colorFogLayer1  = w1l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w1l2nearFog;
+    fog.farFogLayer2    = w1l2farFog;
+    fog.colorFogLayer2  = w1l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w1fogDensity;
+
+    return fog;
 }
 
+fogSettings cloudyFog()
+{
+    fogSettings fog;
 
-//==================================================//
-// Pixel Shaders                                    //
-//==================================================//
+    // near Fog
+    fog.nearFogLayer1   = w2l1nearFog;
+    fog.farFogLayer1    = w2l1farFog;
+    fog.colorFogLayer1  = w2l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w2l2nearFog;
+    fog.farFogLayer2    = w2l2farFog;
+    fog.colorFogLayer2  = w2l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w2fogDensity;
+
+    return fog;
+}
+
+fogSettings overcastFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w3l1nearFog;
+    fog.farFogLayer1    = w3l1farFog;
+    fog.colorFogLayer1  = w3l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w3l2nearFog;
+    fog.farFogLayer2    = w3l2farFog;
+    fog.colorFogLayer2  = w3l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w3fogDensity;
+
+    return fog;
+}
+
+fogSettings rainFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w4l1nearFog;
+    fog.farFogLayer1    = w4l1farFog;
+    fog.colorFogLayer1  = w4l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w4l2nearFog;
+    fog.farFogLayer2    = w4l2farFog;
+    fog.colorFogLayer2  = w4l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w4fogDensity;
+
+    return fog;
+}
+
+fogSettings snowFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w5l1nearFog;
+    fog.farFogLayer1    = w5l1farFog;
+    fog.colorFogLayer1  = w5l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w5l2nearFog;
+    fog.farFogLayer2    = w5l2farFog;
+    fog.colorFogLayer2  = w5l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w5fogDensity;
+
+    return fog;
+}
+
+fogSettings fogFog() // oof that name
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w6l1nearFog;
+    fog.farFogLayer1    = w6l1farFog;
+    fog.colorFogLayer1  = w6l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w6l2nearFog;
+    fog.farFogLayer2    = w6l2farFog;
+    fog.colorFogLayer2  = w6l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w6fogDensity;
+
+    return fog;
+}
+
+fogSettings ashFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w7l1nearFog;
+    fog.farFogLayer1    = w7l1farFog;
+    fog.colorFogLayer1  = w7l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w7l2nearFog;
+    fog.farFogLayer2    = w7l2farFog;
+    fog.colorFogLayer2  = w7l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w7fogDensity;
+
+    return fog;
+}
+
+fogSettings blackreachFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w8l1nearFog;
+    fog.farFogLayer1    = w8l1farFog;
+    fog.colorFogLayer1  = w8l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w8l2nearFog;
+    fog.farFogLayer2    = w8l2farFog;
+    fog.colorFogLayer2  = w8l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w8fogDensity;
+
+    return fog;
+}
+
+fogSettings interiorFog()
+{
+    fogSettings fog;
+
+    // near Fog
+    fog.nearFogLayer1   = w9l1nearFog;
+    fog.farFogLayer1    = w9l1farFog;
+    fog.colorFogLayer1  = w9l1fogCol;
+
+    // far Fog
+    fog.nearFogLayer2   = w9l2nearFog;
+    fog.farFogLayer2    = w9l2farFog;
+    fog.colorFogLayer2  = w9l2fogCol;
+
+    // Overall density
+    fog.fogDensity      = w9fogDensity;
+
+    return fog;
+}
+
+// Order of weathers: 
+// Clear, Cloudy, Overcast, Rain, Snow, Fog, Ash, Blackreach
+static const fogSettings fogData[NUM_WEATHERS + 2] = // +2 for 0 as default and 9 as Interior
+{
+    defaultFog(),  // Weather 0 (out of index)
+    clearFog(),
+    cloudyFog(),
+    overcastFog(),
+    rainFog(),
+    snowFog(),
+    fogFog(),
+    ashFog(),
+    blackreachFog(),
+    interiorFog()
+};
+
+//===========================================================//
+// Pixel Shaders                                             //
+//===========================================================//
 float4	PS_ClearBuffer(VS_OUTPUT IN) : SV_Target
 {
     return 0.0;
@@ -161,20 +420,22 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 {
     float2 coord        = IN.txcoord.xy;
     float3 color        = TextureColor.Sample(PointSampler, coord);
-    float3 fog          = RenderTargetRGBA64.Sample(LinearSampler, coord);
 
+    // Fog Shader
+    int    currWeather  = findCurrentWeather();
+    int    nextWeather  = findNextWeather();
 
-        #ifdef DEBUG_MODE
-            if(showFogMask)
-            return fog;
-        #endif
+    float3 fog          = RenderTargetRGBA64.Sample(LinearSampler, coord); // Sample combined fog planes
+    float3 fogColor     = weatherLerp(fogData, colorFogLayer1, currWeather, nextWeather) * weatherLerp(fogData, colorFogLayer2, currWeather, nextWeather);
 
-        // Blend Fog
+    if(showFogMask) return fog;
+
+            // Dither a bit. Since we can have two fog colors there can be banding
            fog         += triDither(fog, coord, Timer.x, 8);
            if(enableFog)
-           color        = lerp(BlendScreenHDR(color, colorFogLayer1 * colorFogLayer2), color, exp(-fogDensity * fog * fogWeather()));
+           color        = lerp(BlendScreenHDR(color, fogColor), color, exp(-weatherLerp(fogData, fogDensity, currWeather, nextWeather) * fog));
 
-        // Sunglow
+    // Sunglow Shader
     float2 sunPos       = getSun();
     float3 sunOpacity   = TextureColor.Sample(LinearSampler, sunPos);
     float  sunVis       = getSunvisibility();
@@ -194,15 +455,43 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     return color;
 }
 
-float3	PS_DrawFog(VS_OUTPUT IN, uniform float nearPlane, uniform float farPlane, uniform float3 fogColor) : SV_Target
+float3	PS_DrawFog(VS_OUTPUT IN, uniform int layerNum) : SV_Target
 {
+    if(!enableFog) return 0;
+
+    // Setup
     float2 coord    = IN.txcoord.xy;
-    float3 color    = TextureColor.Sample(LinearSampler, coord);
+    float3 color    = TextureColor.Sample(LinearSampler, coord); // In this case prev fog
+    float  nearPlane, farPlane;
+    float3 fogColor;
+
+    // Find weathers
+    int currWeather = findCurrentWeather();
+    int nextWeather = findNextWeather();
+
+    if(layerNum == 1)
+    {
+        nearPlane   = weatherLerp(fogData, nearFogLayer1,  currWeather, nextWeather);
+        farPlane    = weatherLerp(fogData, farFogLayer1,   currWeather, nextWeather);
+        fogColor    = weatherLerp(fogData, colorFogLayer1, currWeather, nextWeather);
+    }
+    else
+    {
+        nearPlane   = weatherLerp(fogData, nearFogLayer2,  currWeather, nextWeather);
+        farPlane    = weatherLerp(fogData, farFogLayer2,   currWeather, nextWeather);
+        fogColor    = weatherLerp(fogData, colorFogLayer2, currWeather, nextWeather);
+    }
+
+    // Calc Fog
     float  fogPlane = (1 - saturate((getLinearizedDepth(coord) - nearPlane) / (farPlane - nearPlane))) - color;
+
+    // Add to prev Fog
     return color + (fogColor * fogPlane);
 }
 
-
+//===========================================================//
+// Techniques                                                //
+//===========================================================//
 technique11 pre <string UIName="Mundus Prepass";>
 {
     pass p0
@@ -217,7 +506,7 @@ technique11 pre1
     pass p0
     {
         SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
-        SetPixelShader (CompileShader(ps_5_0, PS_DrawFog(nearFogLayer1, farFogLayer1, colorFogLayer1)));
+        SetPixelShader (CompileShader(ps_5_0, PS_DrawFog(1)));
     }
 }
 
@@ -226,7 +515,7 @@ technique11 pre2 <string RenderTarget="RenderTargetRGBA64";>
     pass p0
     {
         SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
-        SetPixelShader (CompileShader(ps_5_0, PS_DrawFog(nearFogLayer2, farFogLayer2, colorFogLayer2)));
+        SetPixelShader (CompileShader(ps_5_0, PS_DrawFog(2)));
     }
 }
 
