@@ -60,6 +60,16 @@ float2 getPixelSize(float texsize)
     return (1 / texsize) * float2(1, ScreenSize.z);
 }
 
+// struct bloomTint
+// {
+//     float3 tint;
+// };
+
+// bloomTint defaultTint()
+// {
+//     return float3(1.0, 1.0, 1.0);
+// }
+
 //===========================================================//
 // Pixel Shaders                                             //
 //===========================================================//

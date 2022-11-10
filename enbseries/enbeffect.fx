@@ -80,11 +80,9 @@ UI_BOOL(showLens,                   "| Show Lens",              false)
 UI_BOOL(enableCurve,                "| Enable Curve",           false)
 #endif
 
-
 //===========================================================//
 // Functions                                                 //
 //===========================================================//
-
 
 // Arri Log C4
 float3 LogC4(float3 HDRLinear)
@@ -93,6 +91,65 @@ float3 LogC4(float3 HDRLinear)
     return  (HDRLinear <  -0.0180570)
           ? (HDRLinear - (-0.0180570)) / 0.113597
           : (log2(2231.826309067688 * HDRLinear + 64.0) - 6.0) / 14.0 * 0.9071358748778104 + 0.0928641251221896;
+}
+
+// Arri Log C3
+float3 LogC3(float3 LinearColor)
+{
+    // Apply Arri Log-C curve
+    return  (LinearColor >  0.010591)
+          ? (0.247190 * log10(5.555556 * LinearColor + 0.052272) + 0.385537)
+          : (5.367655 * LinearColor + 0.092809);
+}
+
+#define DESAT    0.35 // Desaturation, pre-tonemap
+#define RESAT    0.30 // Resaturation, post-tonemap
+#define PROTSH   0.33 // Shadows protection
+#define PRESERVE 0.50 // Blend percentage for hue-preserve
+
+float3 LogC3Hue(float3 LinearColor)
+{
+
+    float  orig, presat, postsat, maxCol, mappedMax;
+    float3 ictcp, mapped, huepreserve, origtonemap;
+    
+    // Store input for use as a mask later
+    orig        = LinearColor;
+
+    // Hue-preserving range compression requires desaturation in order to achieve a natural look. We adaptively 
+    // desaturate the input based on its luminance.
+    ictcp       = rgb2ictcp(LinearColor);
+    presat      = pow(smoothstep(1.0, -DESAT, ictcp.x), 1.3);
+    LinearColor = ictcp2rgb(ictcp * float3(1.0, presat.xx));
+
+    // Hue-preserving mapping
+    maxCol      = max(LinearColor.x, max(LinearColor.y, LinearColor.z));
+    mappedMax   = LogC3(maxCol);
+    huepreserve = LinearColor * mappedMax / maxCol;
+
+    // Non-hue preserving mapping
+    origtonemap = LogC3(LinearColor);
+
+    // Combine hue-preserving and non-hue-preserving colors. Absolute hue preservation looks unnatural, as bright 
+    // colors *appear* to have been hue shifted.
+    // Actually doing some amount of hue shifting looks more pleasing
+    // Blend 60% of huepreserve, but protect shadows from oversaturation
+    LinearColor = lerp(origtonemap, lerp(origtonemap, huepreserve, smoothstep(0.0, PROTSH, orig)), PRESERVE);
+
+    
+    // Smoothly ramp off saturation as brightness increases, but keep some even for very bright input
+    mapped      = rgb2ictcp(LinearColor);
+    postsat     = RESAT * smoothstep(1.0, 0.5, ictcp.x);
+
+    // Re-introduce some hue from the pre-compression color. Something similar could be accomplished by delaying the 
+    // luma-dependent desaturation before range compression.
+    // Doing it here however does a better job of preserving perceptual luminance of highly saturated colors. Because 
+    // in the hue-preserving path we only range-compress the max channel,
+    // saturated colors lose luminance. By desaturating them more aggressively first, compressing, and then re-adding 
+    //some saturation, we can preserve their brightness to a greater extent.
+    mapped.yz   = lerp(mapped.yz, ictcp.yz * mapped.x / max(1e-3, ictcp.x), postsat);
+
+    return ictcp2rgb(mapped);
 }
 
 // S Curve by Sevence
@@ -156,7 +213,6 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float3  lens    = TextureLens.Sample(LinearSampler, coord);
 
             // Mix Bloom
-
     float3  sBloom  = lens * ENBParams01.x * softBloomIntensity;
     float3  mBloom  = (bloom * ENBParams01.x * bloomIntensity) + (lens * softBloomMix);
             color   = lerp(color, sBloom, softBloomMix);
@@ -177,8 +233,9 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float   isBri   = clamp(Params01[3].w * isBriImpact, isMinBri, isMaxBri);   // intensity
 
             color  *= exp(exposure + isBri);        // Exposure    
-            color   = LogC4(color);                 // Tonemap
-            color   = pow(color, gamma + isCon);    // Gamma^1
+            //color   = LogC4(color);                 // Tonemap
+            color   = LogC3Hue(color);
+            color   = pow(color, gamma + isCon);    // Gamma
             color   = rgb2ictcp(color);
             color.yz *= (saturation + isSat) * 0.5;
             color   = ictcp2rgb(color);
