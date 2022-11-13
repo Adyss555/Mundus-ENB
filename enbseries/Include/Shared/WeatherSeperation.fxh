@@ -19,41 +19,53 @@
 // Weather 1
 #define CLEAR_WEATHERS_START    1
 #define CLEAR_WEATHERS_END      8
+#define CLEAR_NUM               1
 
 // Cloudy
 // Weather 2
 #define CLOUDY_WEATHERS_START   9
 #define CLOUDY_WEATHERS_END     10
+#define CLOUDY_NUM              2
 
 // Overcast
 // Weather 3
 #define OVERCAST_WEATHERS_START 11
 #define OVERCAST_WEATHERS_END   12
+#define OVERCAST_NUM            3
 
 // Rain
 // Weather 4
 #define RAIN_WEATHERS_START     13
 #define RAIN_WEATHERS_END       15
+#define RAIN_NUM                4
 
 // Snow
 // Weather 5
 #define SNOW_WEATHERS_START     16
 #define SNOW_WEATHERS_END       17
+#define SNOW_NUM                5
 
 // Fog
 // Weather 6
 #define FOG_WEATHERS_START      18
 #define FOG_WEATHERS_END        20
+#define FOG_NUM                 6
 
 // Ash
 // Weather 7
 #define ASH_WEATHERS_START      21
 #define ASH_WEATHERS_END        21
+#define ASH_NUM                 7
 
 // Blackreach
 // Weather 8
 #define BREACH_WEATHERS_START   22
 #define BREACH_WEATHERS_END     22
+#define BREACH_NUM              8
+
+// Interior
+#define INTERIOR_NUM            9
+
 
 // Returns Number of current weather group
 int findCurrentWeather()

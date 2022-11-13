@@ -202,7 +202,7 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float2 coord        = IN.txcoord.xy;
     float3 color        = TextureColor.Sample(PointSampler, coord);
 
-    // Fog Shader
+    // Sample fog and Blend
     int    currWeather  = findCurrentWeather();
     int    nextWeather  = findNextWeather();
 
@@ -213,6 +213,7 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 
             // Dither a bit. Since we can have two fog colors there can be banding
            fog         += triDither(fog, coord, Timer.x, 8);
+
            if(enableFog)
            color        = lerp(BlendScreenHDR(color, fogColor), color, exp(-weatherLerp(fogData, fogDensity, currWeather, nextWeather) * fog));
 

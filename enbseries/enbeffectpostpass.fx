@@ -26,11 +26,6 @@ Texture2D   RenderTargetR16F;    //R16F 16 bit hdr format with red channel only
 Texture2D   RenderTargetR32F;    //R32F 32 bit hdr format with red channel only
 Texture2D   RenderTargetRGB32F;  //32 bit hdr format without alpha
 
-// Curves
-Texture2D curveDay              <string ResourceName="Include/Textures/curveDay.png"; >;
-Texture2D curveNight            <string ResourceName="Include/Textures/curveNight.png"; >;
-Texture2D curveInterior         <string ResourceName="Include/Textures/curveInterior.png"; >;
-
 //===========================================================//
 // Internals                                                 //
 //===========================================================//
@@ -67,6 +62,13 @@ UI_WHITESPACE(6)
 UI_BOOL(enableCAS,                  "| Enable Contrast Adaptive Sharpening", false)
 UI_FLOAT(casContrast,               "|  Sharpening Contrast",      	0.0, 1.0, 0.0)
 UI_FLOAT(casSharpening,             "|  Sharpening Amount",     	0.0, 1.0, 1.0)
+UI_WHITESPACE(7)
+UI_FLOAT(Size,               		"| Size",            1.0, 64.0, 8.0)
+UI_FLOAT(Fade,               		"| Fade",            0.0, 1.0, 0.1)
+UI_INT(Chance,        				"| Chance",          0, 100, 0)
+UI_FLOAT(Range,              		"| Range",           0.0, 128.0, 0.01)
+UI_FLOAT(Slide,              		"| Slide",           0.0, 1.0, 1.0)
+UI_FLOAT(Dispersion,         		"| Dispersion",      0.0, 1.0, 1.0)
 
 //===========================================================//
 // Functions                                                 //
@@ -76,6 +78,7 @@ UI_FLOAT(casSharpening,             "|  Sharpening Amount",     	0.0, 1.0, 1.0)
 #include "Include/Shaders/filmGrain.fxh"
 #include "Include/Shaders/cas.fxh"
 #include "Include/Shaders/Lut.fxh"
+#include "Include/Shaders/lensRain.fxh"
 
 // Per Weather setup
 #include "Include/Shared/WeatherSeperation.fxh"
@@ -86,7 +89,7 @@ UI_FLOAT(casSharpening,             "|  Sharpening Amount",     	0.0, 1.0, 1.0)
 //===========================================================//
 float3 PS_WeatherLut(VS_OUTPUT IN) : SV_Target
 {
-    float3 color	= TextureColor.Sample(PointSampler, IN.txcoord.xy);
+    float3 color	= TextureOriginal.Sample(PointSampler, IN.txcoord.xy);
 
     // Find weathers
     int currWeather = findCurrentWeather();
@@ -149,7 +152,28 @@ float3 PS_CAS(VS_OUTPUT IN) : SV_Target
 // Techniques                                                //
 //===========================================================//
 
+
+
+
 technique11 post <string UIName="Mundus Postpass";>
+{
+    pass p0
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
+        SetPixelShader (CompileShader(ps_5_0, PS_RainGeneration()));
+    }
+}
+
+technique11 post1 <string RenderTarget="RenderTargetRGBA64F";>
+{
+    pass p0
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
+        SetPixelShader (CompileShader(ps_5_0, PS_Copy(TextureColor)));
+    }
+}
+
+technique11 post2
 {
 	pass p0
 	{
@@ -158,7 +182,7 @@ technique11 post <string UIName="Mundus Postpass";>
 	}
 }
 
-technique11 post1
+technique11 post3
 {
 	pass p0
 	{
@@ -167,7 +191,16 @@ technique11 post1
 	}
 }
 
-technique11 post2
+technique11 post4
+{
+    pass p0
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
+        SetPixelShader (CompileShader(ps_5_0, PS_DrawRain()));
+    }
+}
+
+technique11 post5
 {
 	pass p0
 	{
@@ -176,7 +209,7 @@ technique11 post2
 	}
 }
 
-technique11 post3
+technique11 post6
 {
 	pass p0
 	{
@@ -185,7 +218,7 @@ technique11 post3
 	}
 }
 
-technique11 post4
+technique11 post7
 {
 	pass p0
 	{
@@ -194,7 +227,7 @@ technique11 post4
 	}
 }
 
-technique11 post5
+technique11 post8
 {
 	pass p0
 	{

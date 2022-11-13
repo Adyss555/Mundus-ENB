@@ -53,6 +53,9 @@ Texture2D   RenderTargetRGB32F;  // 32 bit hdr format without alpha
 UI_FLOAT_DNI(bloomIntensity,    " Intensity",               0.1, 3.0, 1.0)
 UI_FLOAT_DNI(bloomSensitivity,  " Sensitivity",             0.1, 3.0, 1.0)
 UI_FLOAT_DNI(bloomSaturation,   " Saturation",              0.1, 2.5, 1.0)
+UI_FLOAT_DNI(sigma,             " Sigma",                   0.1, 4.5, 1.0)
+UI_FLOAT_DNI(bloomShape,        " Shape",                   0.1, 4.5, 1.0)
+
 UI_FLOAT(removeSky,             " Mask out Sky",            0.0, 1.0, 0.2)
 
 //===========================================================//
@@ -84,6 +87,16 @@ float4 simpleBlur(Texture2D inputTex, float2 coord, float2 pixelsize)
     return Blur * 0.25;
 }
 
+// https://danielilett.com/2019-05-08-tut1-3-smo-blur/
+static const float twoPi = 6.28319;
+static const float E = 2.71828;
+
+float gaussian(int x)
+{
+    float sigmaSquared = sigma * sigma;
+    return (1 / sqrt(twoPi * sigmaSquared)) * pow(E, -(x * x) / (2 * sigmaSquared));
+}
+
 //===========================================================//
 // Pixel Shaders                                             //
 //===========================================================//
@@ -106,7 +119,7 @@ float3  PS_BlurH(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize
     float3  color;
     for (int x = lower; x <= upper; x++)
     {
-        float weight = upper - sqrt(abs(x));
+        float weight = gaussian(x);
         kernelSum   += weight;
         color       += InputTex.SampleLevel(LinearSampler, IN.txcoord.xy + float2(pixelSize.x * x, 0.0), 0.0) * weight;
     }
@@ -122,7 +135,7 @@ float3  PS_BlurV(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize
     float3  color;
     for (int y = lower; y <= upper; y++)
     {
-        float weight = upper - sqrt(abs(y));
+        float weight = gaussian(y);
         kernelSum   += weight;
         color       += InputTex.SampleLevel(LinearSampler, IN.txcoord.xy + float2(0.0, pixelSize.y * y), 0.0) * weight;
     }
@@ -131,15 +144,27 @@ float3  PS_BlurV(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize
 
 float3  PS_BloomMix(VS_OUTPUT IN) : SV_Target
 {
-    float2 coord  = IN.txcoord.xy;
+    float2 coord     = IN.txcoord.xy;
+    float  weightSum = 0.0;
+    int    maxlevel  = 5;
+    float  weight[6];
+    float  x[6];
+
+    [unroll]
+    for (int i=0; i <= maxlevel; i++) {
+        weight[i] = pow(i+1, bloomShape);
+        weightSum += weight[i];
+        x[i] = i*2;
+    }
+
     float3 bloom  = 0;
-           bloom += simpleBlur(RenderTarget1024, coord, getPixelSize(1024));
-           bloom += simpleBlur(RenderTarget512,  coord, getPixelSize(512));
-           bloom += simpleBlur(RenderTarget256,  coord, getPixelSize(256));
-           bloom += simpleBlur(RenderTarget128,  coord, getPixelSize(128));
-           bloom += simpleBlur(RenderTarget64,   coord, getPixelSize(64));
-           bloom += simpleBlur(RenderTarget32,   coord, getPixelSize(32));
-           bloom += simpleBlur(RenderTarget16,   coord, getPixelSize(16));
+           bloom += simpleBlur(RenderTarget1024, coord, getPixelSize(1024)) * weight[0];
+           bloom += simpleBlur(RenderTarget512,  coord, getPixelSize(512))  * weight[1];
+           bloom += simpleBlur(RenderTarget256,  coord, getPixelSize(256))  * weight[2];
+           bloom += simpleBlur(RenderTarget128,  coord, getPixelSize(128))  * weight[3];
+           bloom += simpleBlur(RenderTarget64,   coord, getPixelSize(64))   * weight[4];
+           bloom += simpleBlur(RenderTarget32,   coord, getPixelSize(32))   * weight[5];
+           bloom += simpleBlur(RenderTarget16,   coord, getPixelSize(16))   * weight[5];
     return clamp(bloom * 0.143, 0.0, MAXBLOOM); // Normalize  1/7 = 0.1428571428571429
 }
 

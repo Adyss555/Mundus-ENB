@@ -77,7 +77,6 @@ UI_WHITESPACE(4)
 UI_MESSAGE(5,                       "|----- Debug -----")
 UI_BOOL(showBloom,                  "| Show Bloom",             false)
 UI_BOOL(showLens,                   "| Show Lens",              false)
-UI_BOOL(enableCurve,                "| Enable Curve",           false)
 #endif
 
 //===========================================================//
@@ -87,7 +86,6 @@ UI_BOOL(enableCurve,                "| Enable Curve",           false)
 // Arri Log C4
 float3 LogC4(float3 HDRLinear)
 {
-    // Apply the LOG curve (optimized)
     return  (HDRLinear <  -0.0180570)
           ? (HDRLinear - (-0.0180570)) / 0.113597
           : (log2(2231.826309067688 * HDRLinear + 64.0) - 6.0) / 14.0 * 0.9071358748778104 + 0.0928641251221896;
@@ -96,18 +94,30 @@ float3 LogC4(float3 HDRLinear)
 // Arri Log C3
 float3 LogC3(float3 LinearColor)
 {
-    // Apply Arri Log-C curve
     return  (LinearColor >  0.010591)
           ? (0.247190 * log10(5.555556 * LinearColor + 0.052272) + 0.385537)
           : (5.367655 * LinearColor + 0.092809);
 }
 
-#define DESAT    0.35 // Desaturation, pre-tonemap
-#define RESAT    0.30 // Resaturation, post-tonemap
-#define PROTSH   0.33 // Shadows protection
-#define PRESERVE 0.50 // Blend percentage for hue-preserve
+float3 LogC4ToLin(float3 LogC4Color)
+{
+    float s = (7 * log(2) * exp2(7 - 14 * 0.0928641251221896 / 0.9071358748778104)) / (2231.826309067688 * 0.9071358748778104);
+    float t = (exp2(14.0 * (-0.0928641251221896 / 0.9071358748778104) + 6.0) - 64.0) / 2231.826309067688;
 
-float3 LogC3Hue(float3 LinearColor)
+    return LogC4Color * s + t;
+}
+
+float3 LogC4ToSRGB(float3 LogC4Color)
+{
+    return (pow(LogC4ToLin(LogC4Color), 1.0 / 2.2));
+}
+
+#define DESAT    0.35 // Desaturation, pre-tonemap
+#define RESAT    0.25 // Resaturation, post-tonemap
+#define PROTSH   0.33 // Shadows protection
+#define PRESERVE 0.65 // Blend percentage for hue-preserve
+
+float3 LogC4Hue(float3 LinearColor)
 {
 
     float  orig, presat, postsat, maxCol, mappedMax;
@@ -124,11 +134,11 @@ float3 LogC3Hue(float3 LinearColor)
 
     // Hue-preserving mapping
     maxCol      = max(LinearColor.x, max(LinearColor.y, LinearColor.z));
-    mappedMax   = LogC3(maxCol);
+    mappedMax   = LogC4(maxCol);
     huepreserve = LinearColor * mappedMax / maxCol;
 
     // Non-hue preserving mapping
-    origtonemap = LogC3(LinearColor);
+    origtonemap = LogC4(LinearColor);
 
     // Combine hue-preserving and non-hue-preserving colors. Absolute hue preservation looks unnatural, as bright 
     // colors *appear* to have been hue shifted.
@@ -139,7 +149,7 @@ float3 LogC3Hue(float3 LinearColor)
     
     // Smoothly ramp off saturation as brightness increases, but keep some even for very bright input
     mapped      = rgb2ictcp(LinearColor);
-    postsat     = RESAT * smoothstep(1.0, 0.5, ictcp.x);
+    postsat     = RESAT * smoothstep(1.0, 0.0, LogC4ToSRGB(ictcp.xxx).x);
 
     // Re-introduce some hue from the pre-compression color. Something similar could be accomplished by delaying the 
     // luma-dependent desaturation before range compression.
@@ -234,10 +244,10 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 
             color  *= exp(exposure + isBri);        // Exposure    
             //color   = LogC4(color);                 // Tonemap
-            color   = LogC3Hue(color);
+            color   = LogC4Hue(color);
             color   = pow(color, gamma + isCon);    // Gamma
             color   = rgb2ictcp(color);
-            color.yz *= (saturation + isSat) * 0.5;
+            color.yz *= saturation * isSat;
             color   = ictcp2rgb(color);
             color   = whiteBalance(color, GetLuma(color, Rec709));
             color   = S_Curve(color, isCon);
