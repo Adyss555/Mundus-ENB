@@ -4,7 +4,7 @@ Made for [NLA Weathers](https://www.nexusmods.com/skyrimspecialedition/mods/7719
   
 ## Installation:  
 1. Download ENB from [Here](http://enbdev.com/download_mod_tesskyrimse.html) and extract the d3d11.dll and d3dcompiler_46e.dll from the WrapperVersion folder to your game root folder
-2. This ENB from the "Code -> Download as Zip" Buttom
+2. Download this ENB from the "Code -> Download as Zip" Buttom
 3. Extract all the contents from the Mundus-ENB-main folder to your game root folder
   
 ## Keymap:  
