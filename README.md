@@ -15,3 +15,12 @@ KeyShowFPS      = del
 KeyScreenshot   = pageUp  
 KeyEditor       = end  
 KeyDof          = unassigned  
+  
+## Credits:
+The Sandvich Maker - Reforged Code  
+Marty McFly - ADOF  
+kingeric1992 - Lut Shader. Some bits here and there  
+TreyM - Port of Frostbyte Style Tonemap and some more bits here and There
+froyok - Soft Bloom Kernel
+AMD - Contrast Adaptive Sharpening
+Further Credits in Shader Files  
