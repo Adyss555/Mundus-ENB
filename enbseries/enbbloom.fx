@@ -48,14 +48,12 @@ Texture2D   RenderTargetRGB32F;  // 32 bit hdr format without alpha
 //===========================================================//
 
 #define MAXBLOOM 16384.0
-#define SAMPLES  8
 
+UI_BOOL(bloomQuality,           " High Quality",            false)
 UI_FLOAT_DNI(bloomIntensity,    " Intensity",               0.1, 3.0, 1.0)
 UI_FLOAT_DNI(bloomSensitivity,  " Sensitivity",             0.1, 3.0, 1.0)
 UI_FLOAT_DNI(bloomSaturation,   " Saturation",              0.1, 2.5, 1.0)
-UI_FLOAT_DNI(sigma,             " Sigma",                   0.1, 4.5, 1.0)
-UI_FLOAT_DNI(bloomShape,        " Shape",                   0.1, 4.5, 1.0)
-
+UI_FLOAT_DNI(bloomShape,        " Size",                    0.0, 3.0, 1.0)
 UI_FLOAT(removeSky,             " Mask out Sky",            0.0, 1.0, 0.2)
 
 //===========================================================//
@@ -87,16 +85,6 @@ float4 simpleBlur(Texture2D inputTex, float2 coord, float2 pixelsize)
     return Blur * 0.25;
 }
 
-// https://danielilett.com/2019-05-08-tut1-3-smo-blur/
-static const float twoPi = 6.28319;
-static const float E = 2.71828;
-
-float gaussian(int x)
-{
-    float sigmaSquared = sigma * sigma;
-    return (1 / sqrt(twoPi * sigmaSquared)) * pow(E, -(x * x) / (2 * sigmaSquared));
-}
-
 //===========================================================//
 // Pixel Shaders                                             //
 //===========================================================//
@@ -112,14 +100,16 @@ float3	PS_Prepass(VS_OUTPUT IN, uniform Texture2D InputTex) : SV_Target
 
 float3  PS_BlurH(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize) : SV_Target
 {
-    int     upper       = (SAMPLES - 1) * 0.5;
+    int     samples     = bloomQuality ? 11 : 9; // Weird numbers i know but they work best
+    int     mid         = bloomQuality ? 3 : 2;
+    int     upper       = (samples - 1) * 0.5;
     int     lower       = -upper;
     float2  pixelSize   = getPixelSize(texsize);
     float   kernelSum   = 0.0;
     float3  color;
     for (int x = lower; x <= upper; x++)
     {
-        float weight = gaussian(x);
+        float weight = mid - sqrt(abs(x));
         kernelSum   += weight;
         color       += InputTex.SampleLevel(LinearSampler, IN.txcoord.xy + float2(pixelSize.x * x, 0.0), 0.0) * weight;
     }
@@ -128,14 +118,18 @@ float3  PS_BlurH(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize
 
 float3  PS_BlurV(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize) : SV_Target
 {
-    int     upper       = (SAMPLES - 1) * 0.5;
+    int     samples     = bloomQuality ? 11 : 9;
+    int     mid         = bloomQuality ? 3 : 2;
+    int     upper       = (samples - 1) * 0.5;
     int     lower       = -upper;
+    int     max         = 0;
     float2  pixelSize   = getPixelSize(texsize);
     float   kernelSum   = 0.0;
+
     float3  color;
     for (int y = lower; y <= upper; y++)
     {
-        float weight = gaussian(y);
+        float weight = mid - sqrt(abs(y));
         kernelSum   += weight;
         color       += InputTex.SampleLevel(LinearSampler, IN.txcoord.xy + float2(0.0, pixelSize.y * y), 0.0) * weight;
     }
@@ -146,15 +140,14 @@ float3  PS_BloomMix(VS_OUTPUT IN) : SV_Target
 {
     float2 coord     = IN.txcoord.xy;
     float  weightSum = 0.0;
-    int    maxlevel  = 5;
-    float  weight[6];
-    float  x[6];
+    int    maxlevel  = 6;
+    float  weight[7];
 
     [unroll]
-    for (int i=0; i <= maxlevel; i++) {
-        weight[i] = pow(i+1, bloomShape);
-        weightSum += weight[i];
-        x[i] = i*2;
+    for (int i=0; i <= maxlevel; i++) 
+    {
+        weight[i]   = pow(i + 1, bloomShape);
+        weightSum  += weight[i];
     }
 
     float3 bloom  = 0;
@@ -164,7 +157,7 @@ float3  PS_BloomMix(VS_OUTPUT IN) : SV_Target
            bloom += simpleBlur(RenderTarget128,  coord, getPixelSize(128))  * weight[3];
            bloom += simpleBlur(RenderTarget64,   coord, getPixelSize(64))   * weight[4];
            bloom += simpleBlur(RenderTarget32,   coord, getPixelSize(32))   * weight[5];
-           bloom += simpleBlur(RenderTarget16,   coord, getPixelSize(16))   * weight[5];
+           bloom += simpleBlur(RenderTarget16,   coord, getPixelSize(16))   * weight[6];
     return clamp(bloom * 0.143, 0.0, MAXBLOOM); // Normalize  1/7 = 0.1428571428571429
 }
 

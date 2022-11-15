@@ -51,7 +51,7 @@ UI_MESSAGE(2,                       "|----- Color -----")
 UI_FLOAT_DNI(exposure,              "| Exposure",              -10.0, 10.0, 0.0)
 UI_FLOAT_DNI(gamma,                 "| Gamma",                  0.1, 3.0, 1.0)
 UI_FLOAT_DNI(contrast,              "| Contrast",               0.0, 1.0, 0.5)
-UI_FLOAT_FINE_DNI(colorTempK,       "| Color Temperature",      1000.0, 30000.0, 7000.0, 50.0)
+UI_FLOAT_FINE_DNI(colorTempK,       "| Color Temperature",      1000.0, 30000.0, 7000.0, 20.0)
 UI_FLOAT_DNI(saturation,            "| Saturation",             0.1, 5.0, 1.0)
 UI_FLOAT_DNI(maxWhite,              "| Max White",              0.0, 12.0, 1.0)
 UI_FLOAT_DNI(blackPoint,            "| Black Point",           -1.0, 1.0, 0.0)
@@ -70,6 +70,7 @@ UI_FLOAT(isMaxBri,                  "| Max Brightness",         0.0, 3.0, 1.0)
 UI_WHITESPACE(3)
 UI_MESSAGE(4,                       "|----- Bloom -----")
 UI_FLOAT_DNI(bloomIntensity,        "| Bloom Intensity",        0.0, 3.0, 0.5)
+UI_FLOAT_DNI(bloomDampening,        "| Dampen Bloom",           0.0, 1.0, 0.5)
 UI_FLOAT_DNI(softBloomIntensity,    "| Soft Bloom Intensity",   0.0, 3.0, 1.0)
 UI_FLOAT_DNI(softBloomMix,          "| Soft Bloom Mixing",      0.0, 1.0, 0.1)
 #ifdef DEBUG_MODE
@@ -112,12 +113,13 @@ float3 LogC4ToSRGB(float3 LogC4Color)
     return (pow(LogC4ToLin(LogC4Color), 1.0 / 2.2));
 }
 
+// Frostbyte Style Tonemap. Port by TreyM
 #define DESAT    0.35 // Desaturation, pre-tonemap
 #define RESAT    0.25 // Resaturation, post-tonemap
 #define PROTSH   0.33 // Shadows protection
 #define PRESERVE 0.65 // Blend percentage for hue-preserve
 
-float3 LogC4Hue(float3 LinearColor)
+float3 LogC4Hue(float3 LinearColor, float saturation)
 {
 
     float  orig, presat, postsat, maxCol, mappedMax;
@@ -151,6 +153,7 @@ float3 LogC4Hue(float3 LinearColor)
     mapped      = rgb2ictcp(LinearColor);
     postsat     = RESAT * smoothstep(1.0, 0.0, LogC4ToSRGB(ictcp.xxx).x);
 
+
     // Re-introduce some hue from the pre-compression color. Something similar could be accomplished by delaying the 
     // luma-dependent desaturation before range compression.
     // Doing it here however does a better job of preserving perceptual luminance of highly saturated colors. Because 
@@ -158,6 +161,8 @@ float3 LogC4Hue(float3 LinearColor)
     // saturated colors lose luminance. By desaturating them more aggressively first, compressing, and then re-adding 
     //some saturation, we can preserve their brightness to a greater extent.
     mapped.yz   = lerp(mapped.yz, ictcp.yz * mapped.x / max(1e-3, ictcp.x), postsat);
+    mapped.yz  *= saturation;
+    
 
     return ictcp2rgb(mapped);
 }
@@ -165,7 +170,7 @@ float3 LogC4Hue(float3 LinearColor)
 // S Curve by Sevence
 float3 S_Curve(float3 x, float isContrast)
 {
-    float  a = saturate(1.0 - (contrast * isContrast * 0.75));  //  0.0 - 1.0
+    float  a = saturate(1.0 - (contrast * isContrast * 0.7));  //  0.0 - 1.0
     float  w = maxWhite;     //  1.0 - 11.2
     float  l = blackPoint;   // -1.0 - 1.0
     float  h = whitePoint;   //  1.0 - 100.0
@@ -224,9 +229,10 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 
             // Mix Bloom
     float3  sBloom  = lens * ENBParams01.x * softBloomIntensity;
-    float3  mBloom  = (bloom * ENBParams01.x * bloomIntensity) + (lens * softBloomMix);
+    float3  mBloom  = (bloom * ENBParams01.x * bloomIntensity) + (lens * softBloomMix); // Also mix a bit of soft bloom here
+    float3  bColor  = max(color, mBloom + sBloom);
             color   = lerp(color, sBloom, softBloomMix);
-            color   = BlendScreenHDR(color, mBloom);
+            color  += mBloom / (1 + lerp(color, bColor, bloomDampening));
 
             //Debug
     #ifdef DEBUG_MODE
@@ -242,16 +248,12 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float   isCon   = clamp(Params01[3].z * isConImpact, isMinCon, isMaxCon);   // 0 == no contrast
     float   isBri   = clamp(Params01[3].w * isBriImpact, isMinBri, isMaxBri);   // intensity
 
-            color  *= exp(exposure + isBri);        // Exposure    
-            //color   = LogC4(color);                 // Tonemap
-            color   = LogC4Hue(color);
-            color   = pow(color, gamma + isCon);    // Gamma
-            color   = rgb2ictcp(color);
-            color.yz *= saturation * isSat;
-            color   = ictcp2rgb(color);
-            color   = whiteBalance(color, GetLuma(color, Rec709));
-            color   = S_Curve(color, isCon);
-            color   = lerp(color, Params01[5].xyz, Params01[5].w); // Fade effects
+            color  *= exp(exposure + isBri);                        // Exposure    
+            color   = LogC4Hue(color, (saturation * isSat));        // Tonemap
+            color   = pow(color, gamma + isCon);                    // Gamma
+            color   = whiteBalance(color, GetLuma(color, Rec709));  // Whitebalane
+            color   = S_Curve(color, isCon);                        // Contrast
+            color   = lerp(color, Params01[5].xyz, Params01[5].w);  // Fade effects
 
     return saturate(color + triDither(color, coord, Timer.x, 8));
 }

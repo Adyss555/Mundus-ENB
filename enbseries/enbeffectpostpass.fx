@@ -100,7 +100,7 @@ float3 PS_WeatherLut(VS_OUTPUT IN) : SV_Target
     {
         color = applyLutByWeather(color, currWeather);
     }
-    else
+    else // If so then transition to the next weather
     {
         color = lerp(applyLutByWeather(color, nextWeather), applyLutByWeather(color, currWeather), Weather.z);
     }
