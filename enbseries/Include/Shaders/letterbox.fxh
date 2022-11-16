@@ -17,7 +17,7 @@ float3 applyLetterbox(float3 Color, float Depth, float2 coord)
 	float2	 rotationCoord  = mul(coord - 0.5, rotationMatrix);
 			 rotationCoord += 0.5;
 
-	if(Depth > LetterboxDepth * 0.01)
+	if(Depth > LetterboxDepth * 0.0001)
 	{
 		if(rotationCoord.x > 1.0 - vBoxSize || rotationCoord.y < hBoxSize)
 		{

@@ -175,8 +175,7 @@ float3 triDither(float3 color, float2 uv, float timer, int BIT_DEPTH)
 }
 
 // Calculates the edges of the supplied texture.
-// Feed the function with texcoords and pixelsize of the texture.
-// Tipp: Multiply the pixelsize to get thiccer lines.
+// Tipp: Multiply the pixelsize to get T H I C C lines.
 struct EdgeData
 {
     float Mid, Left, Right, Bottom, Top; // Directions

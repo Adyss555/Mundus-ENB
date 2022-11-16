@@ -45,7 +45,8 @@ Texture2D RenderTargetRGB32F;   //32 bit hdr format without alpha
 //===========================================================//
 // UI                                                        //
 //===========================================================//
-UI_MESSAGE(1,                      " \x95 Mundus ENB \x95 ")
+UI_MESSAGE(1,                       " \x95 Mundus ENB \x95 ")
+UI_MESSAGE(6,                       " Created by Adyss")
 UI_WHITESPACE(1)
 UI_MESSAGE(2,                       "|----- Color -----")
 UI_FLOAT_DNI(exposure,              "| Exposure",              -10.0, 10.0, 0.0)

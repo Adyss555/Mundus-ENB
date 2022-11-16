@@ -3,7 +3,7 @@
 // By martinsh                                    //
 // ported to ENB by roxahris                      //
 // Modified for correct film response, LOG input  //
-// and Soft Light blendiing by TreyM              //
+// and Soft Light blending by TreyM               //
 ////////////////////////////////////////////////////
 
 // LOG MODE //////////////////////////////////////

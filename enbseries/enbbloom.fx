@@ -49,12 +49,14 @@ Texture2D   RenderTargetRGB32F;  // 32 bit hdr format without alpha
 
 #define MAXBLOOM 16384.0
 
-UI_BOOL(bloomQuality,           " High Quality",            false)
-UI_FLOAT_DNI(bloomIntensity,    " Intensity",               0.1, 3.0, 1.0)
-UI_FLOAT_DNI(bloomSensitivity,  " Sensitivity",             0.1, 3.0, 1.0)
-UI_FLOAT_DNI(bloomSaturation,   " Saturation",              0.1, 2.5, 1.0)
-UI_FLOAT_DNI(bloomShape,        " Size",                    0.0, 3.0, 1.0)
-UI_FLOAT(removeSky,             " Mask out Sky",            0.0, 1.0, 0.2)
+UI_MESSAGE(1,                   "|--- Mundus Natural Bloom ----------------------------------")
+UI_WHITESPACE(2)
+UI_BOOL(bloomQuality,           "| High Quality",            false)
+UI_FLOAT_DNI(bloomIntensity,    "| Intensity",               0.1, 3.0, 1.0)
+UI_FLOAT_DNI(bloomSensitivity,  "| Sensitivity",             0.1, 3.0, 1.0)
+UI_FLOAT_DNI(bloomSaturation,   "| Saturation",              0.1, 2.5, 1.0)
+UI_FLOAT_DNI(bloomShape,        "| Bloom Size",              0.0, 1.0, 0.1)
+UI_FLOAT(removeSky,             "| Mask out Sky",            0.0, 1.0, 0.2)
 
 //===========================================================//
 // Functions                                                 //
@@ -91,7 +93,7 @@ float4 simpleBlur(Texture2D inputTex, float2 coord, float2 pixelsize)
 float3	PS_Prepass(VS_OUTPUT IN, uniform Texture2D InputTex) : SV_Target
 {
     float3  color   = InputTex.Sample(LinearSampler, IN.txcoord.xy) * bloomIntensity;
-            color   = lerp(color, max3(color), bloomSensitivity * 0.2);
+            color   = lerp(color, color * max3(color), bloomSensitivity * 0.2);
             color   = pow(color, bloomSensitivity);
             color   = lerp(GetLuma(color, Rec709), color, bloomSaturation);
             color   = lerp(color, color * (1 - floor(getLinearizedDepth(IN.txcoord.xy))), removeSky);
@@ -107,6 +109,7 @@ float3  PS_BlurH(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize
     float2  pixelSize   = getPixelSize(texsize);
     float   kernelSum   = 0.0;
     float3  color;
+    
     for (int x = lower; x <= upper; x++)
     {
         float weight = mid - sqrt(abs(x));
@@ -118,15 +121,14 @@ float3  PS_BlurH(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize
 
 float3  PS_BlurV(VS_OUTPUT IN, uniform Texture2D InputTex, uniform float texsize) : SV_Target
 {
-    int     samples     = bloomQuality ? 11 : 9;
+    int     samples     = bloomQuality ? 11 : 9; // wont do much for performace but yee
     int     mid         = bloomQuality ? 3 : 2;
     int     upper       = (samples - 1) * 0.5;
     int     lower       = -upper;
-    int     max         = 0;
     float2  pixelSize   = getPixelSize(texsize);
     float   kernelSum   = 0.0;
-
     float3  color;
+
     for (int y = lower; y <= upper; y++)
     {
         float weight = mid - sqrt(abs(y));

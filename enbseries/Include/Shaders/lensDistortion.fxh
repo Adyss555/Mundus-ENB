@@ -40,7 +40,7 @@ float3 LensDist(float2 texcoord)
     float y = f*LensZoom*(coord.y-0.5)+0.5;
     float2 Coords = f*LensZoom*(center.xy*0.5)+0.5;
 
-    return TextureColor.Sample(LinearSampler,Coords);
+    return TextureColor.Sample(LinearSampler, Coords);
 }
 
 float3 SampleBlurredImage(float3 Original, float2 coord)

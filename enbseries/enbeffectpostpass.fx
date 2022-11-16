@@ -37,6 +37,11 @@ Texture2D   RenderTargetRGB32F;  //32 bit hdr format without alpha
 //===========================================================//
 // UI                                                        //
 //===========================================================//
+
+UI_MESSAGE(1,                       "|--- Mundus Postpass ----------------------------------")
+UI_WHITESPACE(1)
+UI_BOOL(enableLut,                  "| Enable Weather Lut",         false)
+UI_WHITESPACE(8)
 UI_MESSAGE(2,                     	"|----- Camera Effects -----")
 UI_BOOL(enableDistortion,           "| Enable Lens Distortion",   	false)
 UI_INT(lensDistortion,              "|  Distortion Amount",       	-100, 100, 0)
@@ -48,7 +53,7 @@ UI_BOOL(enableGrain,                "| Enable Grain",             	false)
 UI_INT(grainAmount,                 "|  Grain Amount",            	0, 100, 50)
 UI_INT(grainRoughness,              "|  Grain Roughness",          	1, 3, 1)
 UI_WHITESPACE(4)
-UI_BOOL(enableCA,                   "| Enable Chromatic Aberration",false)
+UI_BOOL(enableCA,                   "| Enable Radial CA",           false)
 UI_FLOAT(RadialCA,                  "|  Aberration Strength",      	0.0, 2.5, 1.0)
 UI_FLOAT(barrelPower,               "|  Aberration Curve",         	0.0, 2.5, 1.0)
 UI_WHITESPACE(5)
@@ -57,18 +62,19 @@ UI_FLOAT(hBoxSize,                  "|  Horizontal Size",			-0.5, 0.5, 0.1)
 UI_FLOAT(vBoxSize,                  "|  Vertical Size",          	-0.5, 0.5, 0.0)
 UI_FLOAT(BoxRotation,               "|  Letterbox Rotation",	    0.0, 6.0, 0.0)
 UI_FLOAT3(BoxColor,                 "|  Letterbox Color",         	0.0, 0.0, 0.0)
-UI_FLOAT(LetterboxDepth,            "|  Letterbox Distance",      	0.0, 10.0, 0.0)
+UI_INT(LetterboxDepth,              "|  Letterbox Distance",      	0.0, 100.0, 0.0)
 UI_WHITESPACE(6)
-UI_BOOL(enableCAS,                  "| Enable Contrast Adaptive Sharpening", false)
+UI_BOOL(enableCAS,                  "| Enable CAS Sharpening",      false)
 UI_FLOAT(casContrast,               "|  Sharpening Contrast",      	0.0, 1.0, 0.0)
 UI_FLOAT(casSharpening,             "|  Sharpening Amount",     	0.0, 1.0, 1.0)
 UI_WHITESPACE(7)
-UI_FLOAT(Size,               		"| Size",            1.0, 64.0, 8.0)
-UI_FLOAT(Fade,               		"| Fade",            0.0, 1.0, 0.1)
-UI_INT(Chance,        				"| Chance",          0, 100, 0)
-UI_FLOAT(Range,              		"| Range",           0.0, 128.0, 0.01)
-UI_FLOAT(Slide,              		"| Slide",           0.0, 1.0, 1.0)
-UI_FLOAT(Dispersion,         		"| Dispersion",      0.0, 1.0, 1.0)
+UI_BOOL(enableRain,                 "| Enable Rain Lens Distortion",false)
+UI_FLOAT(rainSize,                  "|  Drop Size",                 1.0, 64.0, 8.0)
+UI_FLOAT(rainFade,                  "|  Fade",                      0.0, 1.0, 0.1)
+UI_INT(rainChance,        		    "|  Drop Chance",               0, 100, 0)
+UI_FLOAT(rainRange,                 "|  Range",                     0.0, 128.0, 0.01)
+UI_FLOAT(rainSlide,                 "|  Slide",                     0.0, 1.0, 1.0)
+UI_FLOAT(rainDispersion,            "|  Dispersion",                0.0, 1.0, 1.0)
 
 //===========================================================//
 // Functions                                                 //
@@ -78,11 +84,11 @@ UI_FLOAT(Dispersion,         		"| Dispersion",      0.0, 1.0, 1.0)
 #include "Include/Shaders/filmGrain.fxh"
 #include "Include/Shaders/cas.fxh"
 #include "Include/Shaders/Lut.fxh"
-#include "Include/Shaders/lensRain.fxh"
 
 // Per Weather setup
 #include "Include/Shared/WeatherSeperation.fxh"
 #include "Include/Shaders/WeatherData/lutData.fxh"
+#include "Include/Shaders/lensRain.fxh"
 
 //===========================================================//
 // Pixel Shaders                                             //
@@ -91,18 +97,20 @@ float3 PS_WeatherLut(VS_OUTPUT IN) : SV_Target
 {
     float3 color	= TextureOriginal.Sample(PointSampler, IN.txcoord.xy);
 
+    if(!enableLut) return color;
+
     // Find weathers
     int currWeather = findCurrentWeather();
-    int nextWeather = findNextWeather();
+    int prevWeather = findPrevWeather();
 
     // Check if we are in a transition
-    if(currWeather == nextWeather)
+    if(currWeather == prevWeather)
     {
         color = applyLutByWeather(color, currWeather);
     }
     else // If so then transition to the next weather
     {
-        color = lerp(applyLutByWeather(color, nextWeather), applyLutByWeather(color, currWeather), Weather.z);
+        color = lerp(applyLutByWeather(color, prevWeather), applyLutByWeather(color, currWeather), Weather.z);
     }
 
     return color;
@@ -151,9 +159,6 @@ float3 PS_CAS(VS_OUTPUT IN) : SV_Target
 //===========================================================//
 // Techniques                                                //
 //===========================================================//
-
-
-
 
 technique11 post <string UIName="Mundus Postpass";>
 {

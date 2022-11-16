@@ -54,7 +54,7 @@
 //	I'm seeing are so small they might be statistical noise. So it MIGHT be faster - no promises.
 
 //Ported to ENB by Adyss
-//  Just changed up some stuff for ENB.
+//	Just changed up some stuff for ENB.
 
 float3 CASsharpening(float2 texcoord)
 {

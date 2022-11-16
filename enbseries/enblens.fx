@@ -49,8 +49,11 @@ Texture2D   RenderTargetRGB32F;  // 32 bit hdr format without alpha
 
 #define MAXBLOOM 16384.0
 
-UI_FLOAT_DNI(bloomIntensity,    " Intensity",               0.1, 3.0, 1.0)
-UI_FLOAT(removeSky,             " Mask out Sky",            0.0, 1.0, 0.2)
+UI_MESSAGE(1,                   "|--- Mundus Soft Bloom ----------------------------------")
+UI_WHITESPACE(1)
+UI_FLOAT(removeSky,             "| Mask out Sky",            0.0, 1.0, 0.2)
+UI_FLOAT_DNI(bloomIntensity,    "| Intensity",               0.1, 3.0, 1.0)
+
 
 //===========================================================//
 // Functions                                                 //
@@ -59,16 +62,6 @@ float2 getPixelSize(float texsize)
 {
     return (1 / texsize) * float2(1, ScreenSize.z);
 }
-
-// struct bloomTint
-// {
-//     float3 tint;
-// };
-
-// bloomTint defaultTint()
-// {
-//     return float3(1.0, 1.0, 1.0);
-// }
 
 //===========================================================//
 // Pixel Shaders                                             //

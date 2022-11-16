@@ -111,8 +111,8 @@ int findCurrentWeather()
     return weatherNum;
 }
 
-// Returns Number of next weather group
-int findNextWeather()
+// Returns Number of Pervious weather group
+int findPrevWeather()
 {
     int weatherNum = 0;
 

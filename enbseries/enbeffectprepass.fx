@@ -62,102 +62,85 @@ UI_BOOL(showFogMask,            "| Show Fog Mask",                  false)
 UI_MESSAGE(4,                   "| Tweak each weather below")
 UI_WHITESPACE(3)
 UI_MESSAGE(5,                   "|--- Clear Weather Fog ---")
-UI_FLOAT_DN_I(w1fogDensity,       "| Clear Fog Density",              0.0, 100.0, 0.0)
-UI_FLOAT_DN_I(w1l1nearFog,        "| Clear near Fog Distance",        0.0, 10.0, 0.2)
-UI_FLOAT_DN_I(w1l1farFog,         "| Clear near Fog Closeup",         0.0, 10.0, 0.0)
-UI_FLOAT3_DN_I(w1l1fogCol,        "| Clear near Fog Color",           0.3, 0.3, 0.3)
-UI_FLOAT_DN_I(w1l2nearFog,        "| Clear far Fog Distance",         0.0, 10.0, 1.0)
-UI_FLOAT_DN_I(w1l2farFog,         "| Clear far Fog Closeup",          0.0, 10.0, 0.3)
-UI_FLOAT3_DN_I(w1l2fogCol,        "| Clear far Fog Color",            0.3, 0.3, 0.3)
-UI_MESSAGE(14,                  "|---------------------------------------------")
+UI_FLOAT_DN(w1fogDensity,       "| Clear Fog Density",              0.0, 100.0, 0.0)
+UI_FLOAT_DN(w1l1nearFog,        "| Clear near Fog Distance",        0.0, 10.0, 0.2)
+UI_FLOAT_DN(w1l1farFog,         "| Clear near Fog Closeup",         0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w1l1fogCol,        "| Clear near Fog Color",           0.3, 0.3, 0.3)
+UI_FLOAT_DN(w1l2nearFog,        "| Clear far Fog Distance",         0.0, 10.0, 1.0)
+UI_FLOAT_DN(w1l2farFog,         "| Clear far Fog Closeup",          0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w1l2fogCol,        "| Clear far Fog Color",            0.3, 0.3, 0.3)
 UI_WHITESPACE(6)
 UI_MESSAGE(6,                   "|--- Cloudy Weather Fog ---")
-UI_FLOAT(w2fogDensity,          "| Cloudy Fog Density",             0.0, 100.0, 0.0)
-UI_WHITESPACE(7)
-UI_FLOAT(w2l1nearFog,           "| Cloudy near Fog Distance",       0.0, 10.0, 0.2)
-UI_FLOAT(w2l1farFog,            "| Cloudy near Fog Closeup",        0.0, 10.0, 0.0)
-UI_FLOAT3(w2l1fogCol,           "| Cloudy near Fog Color",          0.3, 0.3, 0.3)
-UI_WHITESPACE(8)
-UI_FLOAT(w2l2nearFog,           "| Cloudy far Fog Distance",        0.0, 10.0, 1.0)
-UI_FLOAT(w2l2farFog,            "| Cloudy far Fog Closeup",         0.0, 10.0, 0.3)
-UI_FLOAT3(w2l2fogCol,           "| Cloudy far Fog Color",           0.3, 0.3, 0.3)
+UI_FLOAT_DN(w2fogDensity,       "| Cloudy Fog Density",             0.0, 100.0, 0.0)
+UI_FLOAT_DN(w2l1nearFog,        "| Cloudy near Fog Distance",       0.0, 10.0, 0.2)
+UI_FLOAT_DN(w2l1farFog,         "| Cloudy near Fog Closeup",        0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w2l1fogCol,        "| Cloudy near Fog Color",          0.3, 0.3, 0.3)
+UI_FLOAT_DN(w2l2nearFog,        "| Cloudy far Fog Distance",        0.0, 10.0, 1.0)
+UI_FLOAT_DN(w2l2farFog,         "| Cloudy far Fog Closeup",         0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w2l2fogCol,        "| Cloudy far Fog Color",           0.3, 0.3, 0.3)
 UI_WHITESPACE(9)
 UI_MESSAGE(7,                   "|--- Overcast Weather Fog ---")
-UI_FLOAT(w3fogDensity,          "| Overcast Fog Density",           0.0, 100.0, 0.0)
-UI_WHITESPACE(10)
-UI_FLOAT(w3l1nearFog,           "| Overcast near Fog Distance",     0.0, 10.0, 0.2)
-UI_FLOAT(w3l1farFog,            "| Overcast near Fog Closeup",      0.0, 10.0, 0.0)
-UI_FLOAT3(w3l1fogCol,           "| Overcast near Fog Color",        0.3, 0.3, 0.3)
-UI_WHITESPACE(11)
-UI_FLOAT(w3l2nearFog,           "| Overcast far Fog Distance",      0.0, 10.0, 1.0)
-UI_FLOAT(w3l2farFog,            "| Overcast far Fog Closeup",       0.0, 10.0, 0.3)
-UI_FLOAT3(w3l2fogCol,           "| Overcast far Fog Color",         0.3, 0.3, 0.3)
+UI_FLOAT_DN(w3fogDensity,       "| Overcast Fog Density",           0.0, 100.0, 0.0)
+UI_FLOAT_DN(w3l1nearFog,        "| Overcast near Fog Distance",     0.0, 10.0, 0.2)
+UI_FLOAT_DN(w3l1farFog,         "| Overcast near Fog Closeup",      0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w3l1fogCol,        "| Overcast near Fog Color",        0.3, 0.3, 0.3)
+UI_FLOAT_DN(w3l2nearFog,        "| Overcast far Fog Distance",      0.0, 10.0, 1.0)
+UI_FLOAT_DN(w3l2farFog,         "| Overcast far Fog Closeup",       0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w3l2fogCol,        "| Overcast far Fog Color",         0.3, 0.3, 0.3)
 UI_WHITESPACE(12)
 UI_MESSAGE(8,                   "|--- Rain Weather Fog ---")
-UI_FLOAT(w4fogDensity,          "| Rain Fog Density",               0.0, 100.0, 0.0)
-UI_WHITESPACE(13)
-UI_FLOAT(w4l1nearFog,           "| Rain near Fog Distance",         0.0, 10.0, 0.2)
-UI_FLOAT(w4l1farFog,            "| Rain near Fog Closeup",          0.0, 10.0, 0.0)
-UI_FLOAT3(w4l1fogCol,           "| Rain near Fog Color",            0.3, 0.3, 0.3)
-UI_WHITESPACE(14)
-UI_FLOAT(w4l2nearFog,           "| Rain far Fog Distance",          0.0, 10.0, 1.0)
-UI_FLOAT(w4l2farFog,            "| Rain far Fog Closeup",           0.0, 10.0, 0.3)
-UI_FLOAT3(w4l2fogCol,           "| Rain far Fog Color",             0.3, 0.3, 0.3)
+UI_FLOAT_DN(w4fogDensity,       "| Rain Fog Density",               0.0, 100.0, 0.0)
+UI_FLOAT_DN(w4l1nearFog,        "| Rain near Fog Distance",         0.0, 10.0, 0.2)
+UI_FLOAT_DN(w4l1farFog,         "| Rain near Fog Closeup",          0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w4l1fogCol,        "| Rain near Fog Color",            0.3, 0.3, 0.3)
+UI_FLOAT_DN(w4l2nearFog,        "| Rain far Fog Distance",          0.0, 10.0, 1.0)
+UI_FLOAT_DN(w4l2farFog,         "| Rain far Fog Closeup",           0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w4l2fogCol,        "| Rain far Fog Color",             0.3, 0.3, 0.3)
 UI_WHITESPACE(15)
 UI_MESSAGE(9,                   "|--- Snow Weather Fog ---")
-UI_FLOAT(w5fogDensity,          "| Snow Fog Density",               0.0, 100.0, 0.0)
-UI_WHITESPACE(16)
-UI_FLOAT(w5l1nearFog,           "| Snow near Fog Distance",         0.0, 10.0, 0.2)
-UI_FLOAT(w5l1farFog,            "| Snow near Fog Closeup",          0.0, 10.0, 0.0)
-UI_FLOAT3(w5l1fogCol,           "| Snow near Fog Color",            0.3, 0.3, 0.3)
-UI_WHITESPACE(17)
-UI_FLOAT(w5l2nearFog,           "| Snow far Fog Distance",          0.0, 10.0, 1.0)
-UI_FLOAT(w5l2farFog,            "| Snow far Fog Closeup",           0.0, 10.0, 0.3)
-UI_FLOAT3(w5l2fogCol,           "| Snow far Fog Color",             0.3, 0.3, 0.3)
+UI_FLOAT_DN(w5fogDensity,       "| Snow Fog Density",               0.0, 100.0, 0.0)
+UI_FLOAT_DN(w5l1nearFog,        "| Snow near Fog Distance",         0.0, 10.0, 0.2)
+UI_FLOAT_DN(w5l1farFog,         "| Snow near Fog Closeup",          0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w5l1fogCol,        "| Snow near Fog Color",            0.3, 0.3, 0.3)
+UI_FLOAT_DN(w5l2nearFog,        "| Snow far Fog Distance",          0.0, 10.0, 1.0)
+UI_FLOAT_DN(w5l2farFog,         "| Snow far Fog Closeup",           0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w5l2fogCol,        "| Snow far Fog Color",             0.3, 0.3, 0.3)
 UI_WHITESPACE(18)
 UI_MESSAGE(10,                  "|--- Foggy Weather Fog ---")
-UI_FLOAT(w6fogDensity,          "| Foggy Fog Density",              0.0, 100.0, 0.0)
-UI_WHITESPACE(19)
-UI_FLOAT(w6l1nearFog,           "| Foggy near Fog Distance",        0.0, 10.0, 0.2)
-UI_FLOAT(w6l1farFog,            "| Foggy near Fog Closeup",         0.0, 10.0, 0.0)
-UI_FLOAT3(w6l1fogCol,           "| Foggy near Fog Color",           0.3, 0.3, 0.3)
-UI_WHITESPACE(20)
-UI_FLOAT(w6l2nearFog,           "| Foggy far Fog Distance",         0.0, 10.0, 1.0)
-UI_FLOAT(w6l2farFog,            "| Foggy far Fog Closeup",          0.0, 10.0, 0.3)
-UI_FLOAT3(w6l2fogCol,           "| Foggy far Fog Color",            0.3, 0.3, 0.3)
+UI_FLOAT_DN(w6fogDensity,       "| Foggy Fog Density",              0.0, 100.0, 0.0)
+UI_FLOAT_DN(w6l1nearFog,        "| Foggy near Fog Distance",        0.0, 10.0, 0.2)
+UI_FLOAT_DN(w6l1farFog,         "| Foggy near Fog Closeup",         0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w6l1fogCol,        "| Foggy near Fog Color",           0.3, 0.3, 0.3)
+UI_FLOAT_DN(w6l2nearFog,        "| Foggy far Fog Distance",         0.0, 10.0, 1.0)
+UI_FLOAT_DN(w6l2farFog,         "| Foggy far Fog Closeup",          0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w6l2fogCol,        "| Foggy far Fog Color",            0.3, 0.3, 0.3)
 UI_WHITESPACE(21)
 UI_MESSAGE(11,                  "|--- Ash Weather Fog ---")
-UI_FLOAT(w7fogDensity,          "| Ash Fog Density",                0.0, 100.0, 0.0)
-UI_WHITESPACE(22)
-UI_FLOAT(w7l1nearFog,           "| Ash near Fog Distance",          0.0, 10.0, 0.2)
-UI_FLOAT(w7l1farFog,            "| Ash near Fog Closeup",           0.0, 10.0, 0.0)
-UI_FLOAT3(w7l1fogCol,           "| Ash near Fog Color",             0.3, 0.3, 0.3)
-UI_WHITESPACE(23)
-UI_FLOAT(w7l2nearFog,           "| Ash far Fog Distance",           0.0, 10.0, 1.0)
-UI_FLOAT(w7l2farFog,            "| Ash far Fog Closeup",            0.0, 10.0, 0.3)
-UI_FLOAT3(w7l2fogCol,           "| Ash far Fog Color",              0.3, 0.3, 0.3)
+UI_FLOAT_DN(w7fogDensity,       "| Ash Fog Density",                0.0, 100.0, 0.0)
+UI_FLOAT_DN(w7l1nearFog,        "| Ash near Fog Distance",          0.0, 10.0, 0.2)
+UI_FLOAT_DN(w7l1farFog,         "| Ash near Fog Closeup",           0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w7l1fogCol,        "| Ash near Fog Color",             0.3, 0.3, 0.3)
+UI_FLOAT_DN(w7l2nearFog,        "| Ash far Fog Distance",           0.0, 10.0, 1.0)
+UI_FLOAT_DN(w7l2farFog,         "| Ash far Fog Closeup",            0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w7l2fogCol,        "| Ash far Fog Color",              0.3, 0.3, 0.3)
 UI_WHITESPACE(24)
 UI_MESSAGE(12,                  "|--- Blackreach Weather Fog ---")
-UI_FLOAT(w8fogDensity,          "| Blackreach Fog Density",         0.0, 100.0, 0.0)
-UI_WHITESPACE(25)
-UI_FLOAT(w8l1nearFog,           "| Blackreach near Fog Distance",   0.0, 10.0, 0.2)
-UI_FLOAT(w8l1farFog,            "| Blackreach near Fog Closeup",    0.0, 10.0, 0.0)
-UI_FLOAT3(w8l1fogCol,           "| Blackreach near Fog Color",      0.3, 0.3, 0.3)
-UI_WHITESPACE(26)
-UI_FLOAT(w8l2nearFog,           "| Blackreach far Fog Distance",    0.0, 10.0, 1.0)
-UI_FLOAT(w8l2farFog,            "| Blackreach far Fog Closeup",     0.0, 10.0, 0.3)
-UI_FLOAT3(w8l2fogCol,           "| Blackreach far Fog Color",       0.3, 0.3, 0.3)
+UI_FLOAT_DN(w8fogDensity,       "| Blackreach Fog Density",         0.0, 100.0, 0.0)
+UI_FLOAT_DN(w8l1nearFog,        "| Blackreach near Fog Distance",   0.0, 10.0, 0.2)
+UI_FLOAT_DN(w8l1farFog,         "| Blackreach near Fog Closeup",    0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w8l1fogCol,        "| Blackreach near Fog Color",      0.3, 0.3, 0.3)
+UI_FLOAT_DN(w8l2nearFog,        "| Blackreach far Fog Distance",    0.0, 10.0, 1.0)
+UI_FLOAT_DN(w8l2farFog,         "| Blackreach far Fog Closeup",     0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w8l2fogCol,        "| Blackreach far Fog Color",       0.3, 0.3, 0.3)
 UI_WHITESPACE(27)
 UI_MESSAGE(13,                  "|--- Interior Fog ---")
-UI_FLOAT(w9fogDensity,          "| Interior Fog Density",           0.0, 100.0, 0.0)
-UI_WHITESPACE(28)
-UI_FLOAT(w9l1nearFog,           "| Interior near Fog Distance",     0.0, 10.0, 0.2)
-UI_FLOAT(w9l1farFog,            "| Interior near Fog Closeup",      0.0, 10.0, 0.0)
-UI_FLOAT3(w9l1fogCol,           "| Interior near Fog Color",        0.3, 0.3, 0.3)
-UI_WHITESPACE(29)
-UI_FLOAT(w9l2nearFog,           "| Interior far Fog Distance",      0.0, 10.0, 1.0)
-UI_FLOAT(w9l2farFog,            "| Interior far Fog Closeup",       0.0, 10.0, 0.3)
-UI_FLOAT3(w9l2fogCol,           "| Interior far Fog Color",         0.3, 0.3, 0.3)
+UI_FLOAT_DN(w9fogDensity,       "| Interior Fog Density",           0.0, 100.0, 0.0)
+UI_FLOAT_DN(w9l1nearFog,        "| Interior near Fog Distance",     0.0, 10.0, 0.2)
+UI_FLOAT_DN(w9l1farFog,         "| Interior near Fog Closeup",      0.0, 10.0, 0.0)
+UI_FLOAT3_DN(w9l1fogCol,        "| Interior near Fog Color",        0.3, 0.3, 0.3)
+UI_FLOAT_DN(w9l2nearFog,        "| Interior far Fog Distance",      0.0, 10.0, 1.0)
+UI_FLOAT_DN(w9l2farFog,         "| Interior far Fog Closeup",       0.0, 10.0, 0.3)
+UI_FLOAT3_DN(w9l2fogCol,        "| Interior far Fog Color",         0.3, 0.3, 0.3)
 
 //===========================================================//
 // Functions                                                 //
@@ -203,10 +186,10 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 
     // Sample fog and Blend
     int    currWeather  = findCurrentWeather();
-    int    nextWeather  = findNextWeather();
+    int    prevWeather  = findPrevWeather();
 
     float3 fog          = RenderTargetRGBA64.Sample(LinearSampler, coord); // Sample combined fog planes
-    float3 fogColor     = weatherLerp(fogData, colorFogLayer1, currWeather, nextWeather) * weatherLerp(fogData, colorFogLayer2, currWeather, nextWeather);
+    float3 fogColor     = weatherLerp(fogData, colorFogLayer1, currWeather, prevWeather) * weatherLerp(fogData, colorFogLayer2, currWeather, prevWeather);
 
     if(showFogMask) return fog;
 
@@ -214,12 +197,13 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
            fog         += triDither(fog, coord, Timer.x, 8);
 
            if(enableFog)
-           color        = lerp(BlendScreenHDR(color, fogColor), color, exp(-weatherLerp(fogData, fogDensity, currWeather, nextWeather) * fog));
+           color        = lerp(BlendScreenHDR(color, fogColor), color, exp(-weatherLerp(fogData, fogDensity, currWeather, prevWeather) * fog));
 
     // Sunglow Shader
     float2 sunPos       = getSun();
     float3 sunOpacity   = TextureColor.Sample(LinearSampler, sunPos);
     float  sunVis       = getSunvisibility();
+    
     float  sunLuma      = max3(sunOpacity);
            sunOpacity   = max(0, sunLuma - glowThreshold);
            sunOpacity  /= max(sunLuma, 0.0001);
@@ -248,19 +232,19 @@ float3	PS_DrawFog(VS_OUTPUT IN, uniform int layerNum) : SV_Target
 
     // Find weathers
     int currWeather = findCurrentWeather();
-    int nextWeather = findNextWeather();
+    int prevWeather = findPrevWeather();
 
     if(layerNum == 1)
     {
-        nearPlane   = weatherLerp(fogData, nearFogLayer1,  currWeather, nextWeather);
-        farPlane    = weatherLerp(fogData, farFogLayer1,   currWeather, nextWeather);
-        fogColor    = weatherLerp(fogData, colorFogLayer1, currWeather, nextWeather);
+        nearPlane   = weatherLerp(fogData, nearFogLayer1,  currWeather, prevWeather);
+        farPlane    = weatherLerp(fogData, farFogLayer1,   currWeather, prevWeather);
+        fogColor    = weatherLerp(fogData, colorFogLayer1, currWeather, prevWeather);
     }
     else
     {
-        nearPlane   = weatherLerp(fogData, nearFogLayer2,  currWeather, nextWeather);
-        farPlane    = weatherLerp(fogData, farFogLayer2,   currWeather, nextWeather);
-        fogColor    = weatherLerp(fogData, colorFogLayer2, currWeather, nextWeather);
+        nearPlane   = weatherLerp(fogData, nearFogLayer2,  currWeather, prevWeather);
+        farPlane    = weatherLerp(fogData, farFogLayer2,   currWeather, prevWeather);
+        fogColor    = weatherLerp(fogData, colorFogLayer2, currWeather, prevWeather);
     }
 
     // Calc Fog. Remove prev plane for spereration
