@@ -18,7 +18,7 @@ KeyEditor       = end
 KeyDof          = unassigned  
   
 ## Credits:
-The Sandvich Maker - Reforged Code, Rain Distortion, Graphing and i probably missing some other stuff
+The Sandvich Maker - Reforged Code, Rain Distortion, Graphing and i probably missing some other stuff  
 Marty McFly - ADOF  
 kingeric1992 - Lut Shader. Some bits here and there  
 TreyM - Port of Frostbyte Style Tonemap and some more bits here and there  
