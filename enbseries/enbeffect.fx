@@ -250,7 +250,7 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float   isBri   = clamp(Params01[3].w * isBriImpact, isMinBri, isMaxBri);   // intensity
 
             color  *= exp(exposure + isBri);                        // Exposure    
-            color   = LogC4Hue(color, (saturation * isSat));        // Tonemap
+            color   = LogC4Hue(color, (saturation + isSat * 0.5));  // Tonemap
             color   = pow(color, gamma + isCon);                    // Gamma
             color   = whiteBalance(color, GetLuma(color, Rec709));  // Whitebalane
             color   = S_Curve(color, isCon);                        // Contrast

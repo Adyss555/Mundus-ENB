@@ -12,6 +12,8 @@
 // Load global config
 #include "Include/mundusConfig.fxh"
 
+#define SHADOWLIFT  0.01
+
 //===========================================================//
 // Textures                                                  //
 //===========================================================//
@@ -134,13 +136,13 @@ UI_FLOAT_DN(w8l2farFog,         "| Blackreach far Fog Closeup",     0.0, 10.0, 0
 UI_FLOAT3_DN(w8l2fogCol,        "| Blackreach far Fog Color",       0.3, 0.3, 0.3)
 UI_WHITESPACE(27)
 UI_MESSAGE(13,                  "|--- Interior Fog ---")
-UI_FLOAT_DN(w9fogDensity,       "| Interior Fog Density",           0.0, 100.0, 0.0)
-UI_FLOAT_DN(w9l1nearFog,        "| Interior near Fog Distance",     0.0, 10.0, 0.2)
-UI_FLOAT_DN(w9l1farFog,         "| Interior near Fog Closeup",      0.0, 10.0, 0.0)
-UI_FLOAT3_DN(w9l1fogCol,        "| Interior near Fog Color",        0.3, 0.3, 0.3)
-UI_FLOAT_DN(w9l2nearFog,        "| Interior far Fog Distance",      0.0, 10.0, 1.0)
-UI_FLOAT_DN(w9l2farFog,         "| Interior far Fog Closeup",       0.0, 10.0, 0.3)
-UI_FLOAT3_DN(w9l2fogCol,        "| Interior far Fog Color",         0.3, 0.3, 0.3)
+UI_FLOAT(w9fogDensity,          "| Interior Fog Density",           0.0, 100.0, 0.0)
+UI_FLOAT(w9l1nearFog,           "| Interior near Fog Distance",     0.0, 10.0, 0.2)
+UI_FLOAT(w9l1farFog,            "| Interior near Fog Closeup",      0.0, 10.0, 0.0)
+UI_FLOAT3(w9l1fogCol,           "| Interior near Fog Color",        0.3, 0.3, 0.3)
+UI_FLOAT(w9l2nearFog,           "| Interior far Fog Distance",      0.0, 10.0, 1.0)
+UI_FLOAT(w9l2farFog,            "| Interior far Fog Closeup",       0.0, 10.0, 0.3)
+UI_FLOAT3(w9l2fogCol,           "| Interior far Fog Color",         0.3, 0.3, 0.3)
 
 //===========================================================//
 // Functions                                                 //
@@ -183,6 +185,23 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
 {
     float2 coord        = IN.txcoord.xy;
     float3 color        = TextureColor.Sample(PointSampler, coord);
+    float4 albedo       = TextureMask.Sample(PointSampler, coord);
+
+    // Lighting tweaks
+    // I noticed trees glowing and the sky full white with this buffer. So i reduced it
+    float  specular     = TextureNormal.Sample(PointSampler, coord).a;
+    float  highspec     = floor(specular);
+           specular    -= highspec;
+
+
+    float  mid          = sqrt(GetLuma(color, Rec709));
+    float  shadows      = saturate(max3(color));
+           shadows      = (1 - shadows);
+           shadows     *= shadows;
+           shadows     *= shadows;
+           color        = lerp(color, lerp(color, max(color, albedo.rgb), shadows), SHADOWLIFT);
+
+           //color       += min(specular, shadows) / (1 + color);
 
     // Sample fog and Blend
     int    currWeather  = findCurrentWeather();
@@ -203,7 +222,6 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float2 sunPos       = getSun();
     float3 sunOpacity   = TextureColor.Sample(LinearSampler, sunPos);
     float  sunVis       = getSunvisibility();
-    
     float  sunLuma      = max3(sunOpacity);
            sunOpacity   = max(0, sunLuma - glowThreshold);
            sunOpacity  /= max(sunLuma, 0.0001);

@@ -53,7 +53,8 @@ Texture2D lutInterior       <string ResourceName="Include/Textures/lutInterior.p
 float3 applyLutByWeather(float3 color, int weatherIndex)
 {
     // Setting it static should speed it up a little
-    float2 lutSize = float2(1024.0, 32.0); 
+    float2 lutSize = float2(1024.0, 32.0);
+
 
     [branch] switch(weatherIndex)
     {

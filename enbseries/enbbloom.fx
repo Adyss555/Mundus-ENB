@@ -93,7 +93,6 @@ float4 simpleBlur(Texture2D inputTex, float2 coord, float2 pixelsize)
 float3	PS_Prepass(VS_OUTPUT IN, uniform Texture2D InputTex) : SV_Target
 {
     float3  color   = InputTex.Sample(LinearSampler, IN.txcoord.xy) * bloomIntensity;
-            color   = lerp(color, color * max3(color), bloomSensitivity * 0.2);
             color   = pow(color, bloomSensitivity);
             color   = lerp(GetLuma(color, Rec709), color, bloomSaturation);
             color   = lerp(color, color * (1 - floor(getLinearizedDepth(IN.txcoord.xy))), removeSky);
