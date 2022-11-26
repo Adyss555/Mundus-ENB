@@ -55,7 +55,6 @@ float3 applyLutByWeather(float3 color, int weatherIndex)
     // Setting it static should speed it up a little
     float2 lutSize = float2(1024.0, 32.0);
 
-
     [branch] switch(weatherIndex)
     {
         case 0: // default lut for weathers out of index
