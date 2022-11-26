@@ -125,11 +125,11 @@ float3 LogC4Hue(float3 LinearColor, float saturation)
 
     float  orig, presat, postsat, maxCol, mappedMax;
     float3 ictcp, mapped, huepreserve, origtonemap;
-    
+
     // Store input for use as a mask later
     orig        = LinearColor;
 
-    // Hue-preserving range compression requires desaturation in order to achieve a natural look. We adaptively 
+    // Hue-preserving range compression requires desaturation in order to achieve a natural look. We adaptively
     // desaturate the input based on its luminance.
     ictcp       = rgb2ictcp(LinearColor);
     presat      = pow(smoothstep(1.0, -DESAT, ictcp.x), 1.3);
@@ -143,27 +143,27 @@ float3 LogC4Hue(float3 LinearColor, float saturation)
     // Non-hue preserving mapping
     origtonemap = LogC4(LinearColor);
 
-    // Combine hue-preserving and non-hue-preserving colors. Absolute hue preservation looks unnatural, as bright 
+    // Combine hue-preserving and non-hue-preserving colors. Absolute hue preservation looks unnatural, as bright
     // colors *appear* to have been hue shifted.
     // Actually doing some amount of hue shifting looks more pleasing
     // Blend 60% of huepreserve, but protect shadows from oversaturation
     LinearColor = lerp(origtonemap, lerp(origtonemap, huepreserve, smoothstep(0.0, PROTSH, orig)), PRESERVE);
 
-    
+
     // Smoothly ramp off saturation as brightness increases, but keep some even for very bright input
     mapped      = rgb2ictcp(LinearColor);
     postsat     = RESAT * smoothstep(1.0, 0.0, LogC4ToSRGB(ictcp.xxx).x);
 
 
-    // Re-introduce some hue from the pre-compression color. Something similar could be accomplished by delaying the 
+    // Re-introduce some hue from the pre-compression color. Something similar could be accomplished by delaying the
     // luma-dependent desaturation before range compression.
-    // Doing it here however does a better job of preserving perceptual luminance of highly saturated colors. Because 
+    // Doing it here however does a better job of preserving perceptual luminance of highly saturated colors. Because
     // in the hue-preserving path we only range-compress the max channel,
-    // saturated colors lose luminance. By desaturating them more aggressively first, compressing, and then re-adding 
+    // saturated colors lose luminance. By desaturating them more aggressively first, compressing, and then re-adding
     //some saturation, we can preserve their brightness to a greater extent.
     mapped.yz   = lerp(mapped.yz, ictcp.yz * mapped.x / max(1e-3, ictcp.x), postsat);
     mapped.yz  *= saturation;
-    
+
 
     return ictcp2rgb(mapped);
 }
@@ -175,10 +175,10 @@ float3 S_Curve(float3 x, float isContrast)
     float  w = maxWhite;     //  1.0 - 11.2
     float  l = blackPoint;   // -1.0 - 1.0
     float  h = whitePoint;   //  1.0 - 100.0
-        
+
     float3 A = 0.5 * ((2 * x - 1) / (a + (1 - a) * abs(2 * x - 1))) + 0.5;
     float3 B = 0.5 * ((2 * w - 1) / (a + (1 - a) * abs(2 * w - 1))) + 0.5;
-        
+
     return max(l + (h - l) * (A / B), 0.001);
 }
 
@@ -211,7 +211,7 @@ float3 colorTemperatureToRGB(float temperatureInKelvins)
 }
 
 // Apply wb lumapreserving
-float3 whiteBalance(float3 color, float luma) 
+float3 whiteBalance(float3 color, float luma)
 {
     color /= luma;
     color *= colorTemperatureToRGB(colorTempK);
@@ -249,7 +249,7 @@ float3	PS_Color(VS_OUTPUT IN) : SV_Target
     float   isCon   = clamp(Params01[3].z * isConImpact, isMinCon, isMaxCon);   // 0 == no contrast
     float   isBri   = clamp(Params01[3].w * isBriImpact, isMinBri, isMaxBri);   // intensity
 
-            color  *= exp(exposure + isBri);                        // Exposure    
+            color  *= exp(exposure + isBri);                        // Exposure
             color   = LogC4Hue(color, (saturation + isSat * 0.5));  // Tonemap
             color   = pow(color, gamma + isCon);                    // Gamma
             color   = whiteBalance(color, GetLuma(color, Rec709));  // Whitebalane
